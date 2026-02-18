@@ -3,8 +3,8 @@ package com.example.demo.controller.users;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.demo.AbstractIntegrationTest;
-import com.example.demo.controller.dto.users.UserRequest;
-import com.example.demo.controller.dto.users.UserResponse;
+import com.example.demo.dto.users.UserRequest;
+import com.example.demo.dto.users.UserResponse;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

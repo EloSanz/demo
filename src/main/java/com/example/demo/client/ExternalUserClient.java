@@ -1,6 +1,6 @@
 package com.example.demo.client;
 
-import com.example.demo.controller.dto.users.UserResponse;
+import com.example.demo.dto.users.UserResponse;
 import java.util.List;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.service.annotation.GetExchange;

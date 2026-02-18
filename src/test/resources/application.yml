@@ -2,3 +2,5 @@ external:
   api:
     jsonplaceholder:
       base-url: "https://jsonplaceholder.typicode.com"
+    rickandmorty:
+      base-url: "https://rickandmortyapi.com/api"

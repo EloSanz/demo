@@ -2,8 +2,8 @@ package com.example.demo.service.impl;
 
 import com.example.demo.client.ExternalUserClient;
 import com.example.demo.domain.User;
-import com.example.demo.controller.dto.users.UserRequest;
-import com.example.demo.controller.dto.users.UserResponse;
+import com.example.demo.dto.users.UserRequest;
+import com.example.demo.dto.users.UserResponse;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;

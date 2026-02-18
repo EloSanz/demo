@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.controller.dto.users.UserRequest;
-import com.example.demo.controller.dto.users.UserResponse;
+import com.example.demo.dto.users.UserRequest;
+import com.example.demo.dto.users.UserResponse;
 import java.util.List;
 
 /** Service interface for User operations. Defines the contract for business logic. */

@@ -29,6 +29,8 @@ external:
   api:
     jsonplaceholder:
       base-url: "https://jsonplaceholder.typicode.com"
+    rickandmorty:
+      base-url: "https://rickandmortyapi.com/api"
 
 ---
 # Docker Profile (activates when running via docker-compose if SPRING_PROFILES_ACTIVE=docker)
