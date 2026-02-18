@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# External API Configuration (for HTTP Interface clients)
+external:
+  api:
+    jsonplaceholder:
+      base-url: "https://jsonplaceholder.typicode.com"
+
+---
+# Docker Profile (activates when running via docker-compose if SPRING_PROFILES_ACTIVE=docker)
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://db:5432/demodb
+    username: postgres
+    password: password
+    driverClassName: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
+
+# External API Configuration (for HTTP Interface clients)
+external:
+  api:
+    jsonplaceholder:
+      base-url: https://jsonplaceholder.typicode.com

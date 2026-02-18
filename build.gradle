@@ -1,0 +1,107 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'checkstyle'
+	id 'com.github.spotbugs' version '6.0.6'
+	id "com.diffplug.spotless" version "6.25.0"
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+spotless {
+	java {
+		// Use Google Java Format (AOSP style for 4-space indentation)
+		googleJavaFormat().aosp()
+		// Remove unused imports
+		removeUnusedImports()
+		// Format Javadoc
+		formatAnnotations()
+	}
+}
+
+checkstyle {
+	toolVersion = "10.13.0"
+	configFile = file("config/checkstyle/checkstyle.xml")
+}
+
+spotbugs {
+	toolVersion = '4.8.3'
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+	maven { url = 'https://repo.spring.io/milestone' }
+	maven { url = 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+	
+
+	developmentOnly 'org.springframework.boot:spring-boot-devtools:3.2.4'
+
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	
+	runtimeOnly 'com.h2database:h2'
+	
+	// Try individual dependencies if starter-test fails to pull them
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-test'
+	testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+	testImplementation 'org.springframework:spring-test'
+
+	// ArchUnit
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+
+	// WireMock
+	testImplementation 'org.wiremock:wiremock-standalone:3.3.1'
+	
+	testImplementation 'org.assertj:assertj-core:3.26.3' // Ensure assertj is present
+	
+	// SpotBugs Annotations
+	compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.3'
+	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.3'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	filter {
+		excludeTestsMatching "*IntegrationTest"
+	}
+}
+
+tasks.register('integrationTest', Test) {
+	description = 'Runs integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform()
+	filter {
+		includeTestsMatching("*IntegrationTest")
+	}
+	shouldRunAfter(tasks.named('test'))
+}
+
+check.dependsOn integrationTest
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-dependencies:3.4.2"
+	}
+}

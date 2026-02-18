@@ -1,0 +1,4 @@
+external:
+  api:
+    jsonplaceholder:
+      base-url: "https://jsonplaceholder.typicode.com"
