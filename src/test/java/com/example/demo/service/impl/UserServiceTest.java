@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.example.demo.domain.User;
 import com.example.demo.dto.users.UserRequest;
 import com.example.demo.dto.users.UserResponse;
-import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.exception.users.UserNotFoundException;
 import com.example.demo.repository.UserRepository;
 import java.util.Optional;
