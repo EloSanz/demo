@@ -10,6 +10,7 @@ import com.example.demo.domain.User;
 import com.example.demo.dto.users.UserRequest;
 import com.example.demo.dto.users.UserResponse;
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.exception.users.UserNotFoundException;
 import com.example.demo.repository.UserRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,7 @@ class UserServiceTest {
         when(userRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.getUserById(id))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("User not found");
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageEndingWith("not found");
     }
 }

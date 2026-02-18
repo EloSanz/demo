@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.client.ExternalRickAndMortyClient;
 import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponse;
+import com.example.demo.exception.rickandmorty.CharacterNotFoundException;
 import com.example.demo.service.RickAndMortyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,10 @@ public class RickAndMortyServiceImpl implements RickAndMortyService {
 
     @Override
     public RickAndMortyCharacterResponse getCharacterById(Long id) {
-        return client.getCharacterById(id);
+        try {
+            return client.getCharacterById(id);
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException.NotFound ex) {
+            throw new CharacterNotFoundException(id, ex);
+        }
     }
 }

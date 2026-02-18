@@ -59,6 +59,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	
 	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'org.postgresql:postgresql'
 	
 	// Try individual dependencies if starter-test fails to pull them
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
