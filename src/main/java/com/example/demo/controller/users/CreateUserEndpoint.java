@@ -34,7 +34,6 @@ public class CreateUserEndpoint extends BaseUserController {
             })
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
-        log.info("POST /api/users - Creating new user: {}", request.getEmail());
         UserResponse createdUser = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }

@@ -11,28 +11,31 @@ import com.tngtech.archunit.lang.ArchRule;
 public class ExceptionArchitectureTest {
 
     @ArchTest
-    static final ArchRule exceptions_should_reside_in_exception_package = classes()
-            .that()
-            .haveSimpleNameEndingWith("Exception")
-            .should()
-            .resideInAPackage("..exception..");
+    static final ArchRule exceptions_should_reside_in_exception_package =
+            classes()
+                    .that()
+                    .haveSimpleNameEndingWith("Exception")
+                    .should()
+                    .resideInAPackage("..exception..");
 
     @ArchTest
-    static final ArchRule exceptions_should_be_exceptions = classes()
-            .that()
-            .resideInAPackage("..exception..")
-            .should()
-            .beAssignableTo(Exception.class)
-            .orShould()
-            .beAssignableTo(RuntimeException.class);
+    static final ArchRule exceptions_should_be_exceptions =
+            classes()
+                    .that()
+                    .resideInAPackage("..exception..")
+                    .should()
+                    .beAssignableTo(Exception.class)
+                    .orShould()
+                    .beAssignableTo(RuntimeException.class);
 
     @ArchTest
-    static final ArchRule services_should_throw_domain_exceptions = classes()
-            .that()
-            .resideInAPackage("..service..")
-            .and()
-            .areNotInterfaces()
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage("..exception..");
+    static final ArchRule services_should_throw_domain_exceptions =
+            classes()
+                    .that()
+                    .resideInAPackage("..service..")
+                    .and()
+                    .areNotInterfaces()
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAPackage("..exception..");
 }

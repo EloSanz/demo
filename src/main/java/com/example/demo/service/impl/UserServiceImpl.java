@@ -14,9 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Implementation of UserService. Contains business logic for User operations.
- */
+/** Implementation of UserService. Contains business logic for User operations. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -39,10 +37,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         log.info("Fetching user with id: {}", id);
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new UserNotFoundException(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         return mapToResponse(user);
     }
 
@@ -54,12 +49,13 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("User already exists with email: " + request.getEmail());
         }
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .website(request.getWebsite())
-                .build();
+        User user =
+                User.builder()
+                        .name(request.getName())
+                        .email(request.getEmail())
+                        .phone(request.getPhone())
+                        .website(request.getWebsite())
+                        .build();
 
         User savedUser = userRepository.save(user);
         log.info("User created successfully with id: {}", savedUser.getId());
@@ -71,10 +67,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(Long id, UserRequest request) {
         log.info("Updating user with id: {}", id);
 
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new UserNotFoundException(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -114,15 +107,16 @@ public class UserServiceImpl implements UserService {
         UserResponse externalUser = externalUserClient.getUserById(externalUserId);
 
         // Check if already exists in local DB
-        User user = userRepository
-                .findByEmail(externalUser.getEmail())
-                .orElse(
-                        User.builder()
-                                .name(externalUser.getName())
-                                .email(externalUser.getEmail())
-                                .phone(externalUser.getPhone())
-                                .website(externalUser.getWebsite())
-                                .build());
+        User user =
+                userRepository
+                        .findByEmail(externalUser.getEmail())
+                        .orElse(
+                                User.builder()
+                                        .name(externalUser.getName())
+                                        .email(externalUser.getEmail())
+                                        .phone(externalUser.getPhone())
+                                        .website(externalUser.getWebsite())
+                                        .build());
 
         // Update with latest data
         user.setName(externalUser.getName());

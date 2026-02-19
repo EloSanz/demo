@@ -28,7 +28,6 @@ public class DeleteUserEndpoint extends BaseUserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID of the user to delete") @PathVariable Long id) {
-        log.info("DELETE /api/users/{} - Deleting user", id);
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }

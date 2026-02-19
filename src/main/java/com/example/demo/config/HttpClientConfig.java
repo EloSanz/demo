@@ -12,9 +12,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 /**
  * Configuration for HTTP Interface clients.
  *
- * <p>
- * This creates the implementation of declarative HTTP interfaces using the base
- * URL from
+ * <p>This creates the implementation of declarative HTTP interfaces using the base URL from
  * application.yml.
  */
 @Configuration
@@ -27,16 +25,15 @@ public class HttpClientConfig {
     private String rickAndMortyBaseUrl;
 
     /**
-     * Creates a bean for the ExternalUserClient interface. Spring will generate the
-     * implementation
+     * Creates a bean for the ExternalUserClient interface. Spring will generate the implementation
      * automatically.
      */
     @Bean
     public ExternalUserClient externalUserClient() {
         WebClient webClient = WebClient.builder().baseUrl(jsonPlaceholderBaseUrl).build();
 
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient))
-                .build();
+        HttpServiceProxyFactory factory =
+                HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient)).build();
 
         return factory.createClient(ExternalUserClient.class);
     }
@@ -44,8 +41,8 @@ public class HttpClientConfig {
     @Bean
     public ExternalRickAndMortyClient externalRickAndMortyClient() {
         WebClient webClient = WebClient.builder().baseUrl(rickAndMortyBaseUrl).build();
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient))
-                .build();
+        HttpServiceProxyFactory factory =
+                HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient)).build();
         return factory.createClient(ExternalRickAndMortyClient.class);
     }
 }

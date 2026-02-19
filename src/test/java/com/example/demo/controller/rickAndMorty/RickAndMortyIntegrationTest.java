@@ -14,27 +14,29 @@ import org.springframework.test.context.TestPropertySource;
 import org.wiremock.spring.EnableWireMock;
 
 @EnableWireMock
-@TestPropertySource(properties = {
-                "external.api.rickandmorty.base-url=http://localhost:${wiremock.server.port}/api"
-})
+@TestPropertySource(
+        properties = {
+            "external.api.rickandmorty.base-url=http://localhost:${wiremock.server.port}/api"
+        })
 class RickAndMortyIntegrationTest extends AbstractIntegrationTest {
 
-        @Autowired
-        private TestRestTemplate restTemplate;
+    @Autowired private TestRestTemplate restTemplate;
 
-        @Test
-        void shouldReturnCharacter_WhenExternalApiReturnsSuccess() {
-                // Given
-                RickAndMortyTestUtil.stubRickAndMortyCharacter(1, RickAndMortyTestUtil.getRickSanchezJson());
+    @Test
+    void shouldReturnCharacter_WhenExternalApiReturnsSuccess() {
+        // Given
+        RickAndMortyTestUtil.stubRickAndMortyCharacter(
+                1, RickAndMortyTestUtil.getRickSanchezJson());
 
-                // When
-                ResponseEntity<RickAndMortyCharacterResponse> response = restTemplate
-                                .getForEntity("/api/rickandmorty/characters/1", RickAndMortyCharacterResponse.class);
+        // When
+        ResponseEntity<RickAndMortyCharacterResponse> response =
+                restTemplate.getForEntity(
+                        "/api/rickandmorty/characters/1", RickAndMortyCharacterResponse.class);
 
-                // Then
-                assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                assertThat(response.getBody()).isNotNull();
-                assertThat(response.getBody().getName()).isEqualTo("Rick Sanchez");
-                assertThat(response.getBody().getStatus()).isEqualTo("Alive");
-        }
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getName()).isEqualTo("Rick Sanchez");
+        assertThat(response.getBody().getStatus()).isEqualTo("Alive");
+    }
 }

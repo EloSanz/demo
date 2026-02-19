@@ -14,11 +14,14 @@ public class RickAndMortyTestUtil {
     }
 
     public static void stubRickAndMortyCharacter(int id, String responseBody) {
-        stubFor(get(urlEqualTo("/api/character/" + id))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBody(responseBody)));
+        stubFor(
+                get(urlEqualTo("/api/character/" + id))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(200)
+                                        .withHeader(
+                                                "Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                                        .withBody(responseBody)));
     }
 
     public static String getRickSanchezJson() {

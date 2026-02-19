@@ -182,6 +182,22 @@ Run tests:
 ./gradlew test
 ```
 
+## 🛠️ Gradle Commands
+
+Here are the most common and useful commands for working with this project:
+
+| Command | Description |
+|---------|-------------|
+| `./gradlew bootRun` | Starts the application locally. |
+| `./gradlew build` | Compiles code, runs all tests, executes linters, and builds the executable JAR. |
+| `./gradlew clean` | Deletes the `build/` directory, wiping all generated files. |
+| `./gradlew test` | Runs the unit tests. |
+| `./gradlew integrationTest` | Runs the integration tests. |
+| `./gradlew spotlessApply` | Auto-formats the code (Google Java Format, removes unused imports, etc.). |
+| `./gradlew spotlessCheck` | Verifies if the code is correctly formatted without modifying the files. |
+| `./gradlew spotbugsMain` | Runs static code analysis to detect bugs and bad practices in the main source code. |
+| `./gradlew classes` | Compiles the main Java source code to ensure there are no compilation errors. |
+
 ## 🎓 Key Concepts for Take-Home Challenges
 
 ### 1. **Database Agnostic Design**

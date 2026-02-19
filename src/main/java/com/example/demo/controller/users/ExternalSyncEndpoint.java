@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Slf4j
 public class ExternalSyncEndpoint extends BaseUserController {
 
     public ExternalSyncEndpoint(UserService userService) {
@@ -29,7 +27,6 @@ public class ExternalSyncEndpoint extends BaseUserController {
     @ApiResponse(responseCode = "200", description = "External users retrieved successfully")
     @GetMapping("/external")
     public ResponseEntity<List<UserResponse>> fetchExternalUsers() {
-        log.info("GET /api/users/external - Fetching users from external API");
         return ResponseEntity.ok(userService.fetchUsersFromExternalApi());
     }
 
@@ -46,7 +43,6 @@ public class ExternalSyncEndpoint extends BaseUserController {
     public ResponseEntity<UserResponse> syncUserFromExternal(
             @Parameter(description = "ID of the user in the external system") @PathVariable
                     Long externalUserId) {
-        log.info("POST /api/users/sync/{} - Syncing user from external API", externalUserId);
         UserResponse syncedUser = userService.syncUserFromExternalApi(externalUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(syncedUser);
     }

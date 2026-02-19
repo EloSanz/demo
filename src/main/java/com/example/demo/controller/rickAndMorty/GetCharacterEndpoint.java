@@ -19,7 +19,9 @@ public class GetCharacterEndpoint {
 
     private final RickAndMortyService service;
 
-    @Operation(summary = "Get character by ID", description = "Fetches a character from the external Rick and Morty API.")
+    @Operation(
+            summary = "Get character by ID",
+            description = "Fetches a character from the external Rick and Morty API.")
     @GetMapping("/{id}")
     public ResponseEntity<RickAndMortyCharacterResponse> getCharacter(@PathVariable Long id) {
         return ResponseEntity.ok(service.getCharacterById(id));

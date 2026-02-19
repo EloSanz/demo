@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Slf4j
 public class UpdateUserEndpoint extends BaseUserController {
 
     public UpdateUserEndpoint(UserService userService) {
@@ -34,7 +32,6 @@ public class UpdateUserEndpoint extends BaseUserController {
     public ResponseEntity<UserResponse> updateUser(
             @Parameter(description = "ID of the user to update") @PathVariable Long id,
             @Valid @RequestBody UserRequest request) {
-        log.info("PUT /api/users/{} - Updating user", id);
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 }

@@ -11,5 +11,12 @@
   <module name="TreeWalker">
      <!-- Simple check to verify it works -->
     <module name="AvoidStarImport"/>
+    
+    <!-- Forbid fully qualified names inside code (com.example.demo.*) -->
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="(?&lt;!package )(?&lt;!import )com\.example\.demo\.[a-zA-Z0-9_\.]+"/>
+      <property name="message" value="Avoid using fully qualified class names (com.example.demo.*). Please import the class instead."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
   </module>
 </module>
