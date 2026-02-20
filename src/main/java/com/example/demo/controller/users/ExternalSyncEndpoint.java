@@ -20,32 +20,40 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ExternalSyncEndpoint extends BaseUserController {
 
-        private final UserMapper userMapper;
+    private final UserMapper userMapper;
 
-        public ExternalSyncEndpoint(UserService userService, UserMapper userMapper) {
-                super(userService);
-                this.userMapper = userMapper;
-        }
+    public ExternalSyncEndpoint(UserService userService, UserMapper userMapper) {
+        super(userService);
+        this.userMapper = userMapper;
+    }
 
-        @Operation(summary = "Fetch external users", description = "Retrieves users from the external JSONPlaceholder API.")
-        @ApiResponse(responseCode = "200", description = "External users retrieved successfully")
-        @GetMapping("/external")
-        public ResponseEntity<List<UserResponseDto>> fetchExternalUsers() {
-                List<UserResponseDto> response = userService.fetchUsersFromExternalApi().stream()
-                                .map(userMapper::toResponse)
-                                .collect(Collectors.toList());
-                return ResponseEntity.ok(response);
-        }
+    @Operation(
+            summary = "Fetch external users",
+            description = "Retrieves users from the external JSONPlaceholder API.")
+    @ApiResponse(responseCode = "200", description = "External users retrieved successfully")
+    @GetMapping("/external")
+    public ResponseEntity<List<UserResponseDto>> fetchExternalUsers() {
+        List<UserResponseDto> response =
+                userService.fetchUsersFromExternalApi().stream()
+                        .map(userMapper::toResponse)
+                        .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
 
-        @Operation(summary = "Sync external user", description = "Fetches a user from the external API and saves them to the local database.")
-        @ApiResponses(value = {
-                        @ApiResponse(responseCode = "201", description = "User synced and created locally"),
-                        @ApiResponse(responseCode = "404", description = "User not found in external API")
-        })
-        @PostMapping("/sync/{externalUserId}")
-        public ResponseEntity<UserResponseDto> syncUserFromExternal(
-                        @Parameter(description = "ID of the user in the external system") @PathVariable Long externalUserId) {
-                User syncedUser = userService.syncUserFromExternalApi(externalUserId);
-                return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(syncedUser));
-        }
+    @Operation(
+            summary = "Sync external user",
+            description =
+                    "Fetches a user from the external API and saves them to the local database.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "201", description = "User synced and created locally"),
+                @ApiResponse(responseCode = "404", description = "User not found in external API")
+            })
+    @PostMapping("/sync/{externalUserId}")
+    public ResponseEntity<UserResponseDto> syncUserFromExternal(
+            @Parameter(description = "ID of the user in the external system") @PathVariable
+                    Long externalUserId) {
+        User syncedUser = userService.syncUserFromExternalApi(externalUserId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(syncedUser));
+    }
 }

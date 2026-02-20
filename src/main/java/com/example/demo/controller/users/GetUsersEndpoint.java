@@ -28,17 +28,21 @@ public class GetUsersEndpoint extends BaseUserController {
     @ApiResponse(responseCode = "200", description = "List of users retrieved successfully")
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        List<UserResponseDto> response = userService.getAllUsers().stream()
-                .map(userMapper::toResponse)
-                .collect(Collectors.toList());
+        List<UserResponseDto> response =
+                userService.getAllUsers().stream()
+                        .map(userMapper::toResponse)
+                        .collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their unique identifier.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User found"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
+    @Operation(
+            summary = "Get user by ID",
+            description = "Retrieves a specific user by their unique identifier.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "User found"),
+                @ApiResponse(responseCode = "404", description = "User not found")
+            })
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(
             @Parameter(description = "ID of the user to retrieve") @PathVariable Long id) {

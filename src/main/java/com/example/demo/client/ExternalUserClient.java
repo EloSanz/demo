@@ -9,14 +9,10 @@ import org.springframework.web.service.annotation.HttpExchange;
 /**
  * Declarative HTTP Interface for consuming external User API.
  *
- * <p>
- * This is the NEW Spring Boot 4 way of creating REST clients. No need for
- * RestTemplate or
+ * <p>This is the NEW Spring Boot 4 way of creating REST clients. No need for RestTemplate or
  * WebClient boilerplate!
  *
- * <p>
- * The base URL is configured in application.yml and injected via @Bean
- * configuration.
+ * <p>The base URL is configured in application.yml and injected via @Bean configuration.
  */
 @HttpExchange
 public interface ExternalUserClient {

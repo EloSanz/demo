@@ -27,11 +27,16 @@ public class CreateUserEndpoint extends BaseUserController {
         this.userMapper = userMapper;
     }
 
-    @Operation(summary = "Create a new user", description = "Creates a new user in the local database. Email must be unique.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input or email already exists")
-    })
+    @Operation(
+            summary = "Create a new user",
+            description = "Creates a new user in the local database. Email must be unique.")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "201", description = "User created successfully"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Invalid input or email already exists")
+            })
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto request) {
         User domainUser = userMapper.toDomain(request);

@@ -27,11 +27,12 @@ public class UpdateUserEndpoint extends BaseUserController {
     }
 
     @Operation(summary = "Update user", description = "Updates an existing user's information.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "User updated successfully"),
+                @ApiResponse(responseCode = "400", description = "Invalid input"),
+                @ApiResponse(responseCode = "404", description = "User not found")
+            })
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(
             @Parameter(description = "ID of the user to update") @PathVariable Long id,

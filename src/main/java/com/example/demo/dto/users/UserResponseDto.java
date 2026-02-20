@@ -6,9 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-/**
- * DTO for User responses. Separates internal domain model from API responses.
- */
+/** DTO for User responses. Separates internal domain model from API responses. */
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,8 +16,7 @@ public class UserResponseDto {
     private Long id;
     private String name;
 
-    @ToString.Exclude
-    private String email;
+    @ToString.Exclude private String email;
     private String phone;
     private String website;
 }

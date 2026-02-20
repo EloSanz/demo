@@ -16,9 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Implementation of UserService. Contains business logic for User operations.
- */
+/** Implementation of UserService. Contains business logic for User operations. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -41,7 +39,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
-        UserEntity entity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        UserEntity entity =
+                userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         return entityMapper.toDomain(entity);
     }
 
@@ -60,7 +59,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(Long id, User domainObject) {
-        UserEntity existingEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        UserEntity existingEntity =
+                userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         entityMapper.updateEntityFromDomain(domainObject, existingEntity);
 
@@ -97,9 +97,10 @@ public class UserServiceImpl implements UserService {
         User incomingUser = externalMapper.toDomain(externalResponse);
 
         // Check if already exists in local DB
-        UserEntity existingEntity = userRepository
-                .findByEmail(incomingUser.getEmail())
-                .orElse(entityMapper.toEntity(incomingUser));
+        UserEntity existingEntity =
+                userRepository
+                        .findByEmail(incomingUser.getEmail())
+                        .orElse(entityMapper.toEntity(incomingUser));
 
         // Update with latest data
         entityMapper.updateEntityFromDomain(incomingUser, existingEntity);
