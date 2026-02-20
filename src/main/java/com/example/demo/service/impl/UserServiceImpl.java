@@ -4,6 +4,7 @@ import com.example.demo.client.ExternalUserClient;
 import com.example.demo.domain.User;
 import com.example.demo.dto.users.UserResponseDto;
 import com.example.demo.entity.UserEntity;
+import com.example.demo.exception.users.UserAlreadyExistsException;
 import com.example.demo.exception.users.UserNotFoundException;
 import com.example.demo.mapper.ExternalUserMapper;
 import com.example.demo.mapper.UserEntityMapper;
@@ -47,8 +48,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User domainObject) {
         if (userRepository.existsByEmail(domainObject.getEmail())) {
-            throw new RuntimeException(
-                    "User already exists with email: " + domainObject.getEmail());
+            throw new UserAlreadyExistsException(domainObject.getEmail());
         }
 
         UserEntity entity = entityMapper.toEntity(domainObject);
