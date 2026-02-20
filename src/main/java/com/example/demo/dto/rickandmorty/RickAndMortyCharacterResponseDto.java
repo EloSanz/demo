@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RickAndMortyCharacterResponse {
+public class RickAndMortyCharacterResponseDto {
     private Long id;
     private String name;
     private String status;

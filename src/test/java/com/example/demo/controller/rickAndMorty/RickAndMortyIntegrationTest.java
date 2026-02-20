@@ -3,7 +3,7 @@ package com.example.demo.controller.rickAndMorty;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.demo.AbstractIntegrationTest;
-import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponse;
+import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponseDto;
 import com.example.demo.util.RickAndMortyTestUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +14,13 @@ import org.springframework.test.context.TestPropertySource;
 import org.wiremock.spring.EnableWireMock;
 
 @EnableWireMock
-@TestPropertySource(
-        properties = {
-            "external.api.rickandmorty.base-url=http://localhost:${wiremock.server.port}/api"
-        })
+@TestPropertySource(properties = {
+        "external.api.rickandmorty.base-url=http://localhost:${wiremock.server.port}/api"
+})
 class RickAndMortyIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired private TestRestTemplate restTemplate;
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @Test
     void shouldReturnCharacter_WhenExternalApiReturnsSuccess() {
@@ -29,9 +29,8 @@ class RickAndMortyIntegrationTest extends AbstractIntegrationTest {
                 1, RickAndMortyTestUtil.getRickSanchezJson());
 
         // When
-        ResponseEntity<RickAndMortyCharacterResponse> response =
-                restTemplate.getForEntity(
-                        "/api/rickandmorty/characters/1", RickAndMortyCharacterResponse.class);
+        ResponseEntity<RickAndMortyCharacterResponseDto> response = restTemplate.getForEntity(
+                "/api/rickandmorty/characters/1", RickAndMortyCharacterResponseDto.class);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

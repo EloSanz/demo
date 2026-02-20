@@ -1,6 +1,6 @@
 package com.example.demo.client;
 
-import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponse;
+import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponseDto;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -9,5 +9,5 @@ import org.springframework.web.service.annotation.HttpExchange;
 public interface ExternalRickAndMortyClient {
 
     @GetExchange("/{id}")
-    RickAndMortyCharacterResponse getCharacterById(@PathVariable Long id);
+    RickAndMortyCharacterResponseDto getCharacterById(@PathVariable Long id);
 }

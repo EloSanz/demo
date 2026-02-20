@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponse;
+import com.example.demo.domain.RickAndMortyCharacter;
 
 public interface RickAndMortyService {
-    RickAndMortyCharacterResponse getCharacterById(Long id);
+    RickAndMortyCharacter getCharacterById(Long id);
 }

@@ -1,6 +1,6 @@
 package com.example.demo.util;
 
-import com.example.demo.dto.users.UserRequest;
+import com.example.demo.dto.users.UserRequestDto;
 
 public class UserTestUtil {
 
@@ -8,8 +8,8 @@ public class UserTestUtil {
         // Private constructor for utility class
     }
 
-    public static UserRequest createDefaultUserRequest() {
-        return UserRequest.builder()
+    public static UserRequestDto createDefaultUserRequest() {
+        return UserRequestDto.builder()
                 .name("Integration User")
                 .email("integration@test.com")
                 .phone("1234567890")
@@ -17,8 +17,8 @@ public class UserTestUtil {
                 .build();
     }
 
-    public static UserRequest createSecondaryUserRequest() {
-        return UserRequest.builder()
+    public static UserRequestDto createSecondaryUserRequest() {
+        return UserRequestDto.builder()
                 .name("Integration User 2")
                 .email("integration2@test.com")
                 .phone("0987654321")

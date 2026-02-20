@@ -1,30 +1,29 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.users.UserRequest;
-import com.example.demo.dto.users.UserResponse;
+import com.example.demo.domain.User;
 import java.util.List;
 
 /** Service interface for User operations. Defines the contract for business logic. */
 public interface UserService {
 
     /** Get all users from local database */
-    List<UserResponse> getAllUsers();
+    List<User> getAllUsers();
 
     /** Get a user by ID from local database */
-    UserResponse getUserById(Long id);
+    User getUserById(Long id);
 
     /** Create a new user in local database */
-    UserResponse createUser(UserRequest request);
+    User createUser(User request);
 
     /** Update an existing user in local database */
-    UserResponse updateUser(Long id, UserRequest request);
+    User updateUser(Long id, User request);
 
     /** Delete a user from local database */
     void deleteUser(Long id);
 
     /** Fetch users from external API and optionally sync to local DB */
-    List<UserResponse> fetchUsersFromExternalApi();
+    List<User> fetchUsersFromExternalApi();
 
     /** Sync a specific user from external API to local database */
-    UserResponse syncUserFromExternalApi(Long externalUserId);
+    User syncUserFromExternalApi(Long externalUserId);
 }

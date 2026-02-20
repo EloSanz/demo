@@ -1,7 +1,9 @@
 package com.example.demo.controller.users;
 
-import com.example.demo.dto.users.UserRequest;
-import com.example.demo.dto.users.UserResponse;
+import com.example.demo.domain.User;
+import com.example.demo.dto.users.UserRequestDto;
+import com.example.demo.dto.users.UserResponseDto;
+import com.example.demo.mapper.UserMapper;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,21 +19,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UpdateUserEndpoint extends BaseUserController {
 
-    public UpdateUserEndpoint(UserService userService) {
+    private final UserMapper userMapper;
+
+    public UpdateUserEndpoint(UserService userService, UserMapper userMapper) {
         super(userService);
+        this.userMapper = userMapper;
     }
 
     @Operation(summary = "Update user", description = "Updates an existing user's information.")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "User updated successfully"),
-                @ApiResponse(responseCode = "400", description = "Invalid input"),
-                @ApiResponse(responseCode = "404", description = "User not found")
-            })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(
+    public ResponseEntity<UserResponseDto> updateUser(
             @Parameter(description = "ID of the user to update") @PathVariable Long id,
-            @Valid @RequestBody UserRequest request) {
-        return ResponseEntity.ok(userService.updateUser(id, request));
+            @Valid @RequestBody UserRequestDto request) {
+        User domainUser = userMapper.toDomain(request);
+        User updatedUser = userService.updateUser(id, domainUser);
+        return ResponseEntity.ok(userMapper.toResponse(updatedUser));
     }
 }

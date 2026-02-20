@@ -7,9 +7,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.demo.domain.User;
-import com.example.demo.dto.users.UserRequest;
-import com.example.demo.dto.users.UserResponse;
+import com.example.demo.entity.UserEntity;
 import com.example.demo.exception.users.UserNotFoundException;
+import com.example.demo.mapper.ExternalUserMapper;
+import com.example.demo.mapper.UserEntityMapper;
 import com.example.demo.repository.UserRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -22,50 +23,65 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UserServiceTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private UserEntityMapper entityMapper;
+    @Mock private ExternalUserMapper externalMapper;
 
     @InjectMocks private UserServiceImpl userService;
 
     @Test
-    void givenUserRequest_whenCreateUser_shouldReturnUserResponse() {
+    void givenUserDomain_whenCreateUser_shouldReturnUserDomain() {
         // Given
-        UserRequest request =
-                UserRequest.builder()
-                        .name("Test User")
-                        .email("test@example.com")
-                        .phone("1234567890")
-                        .website("test.com")
-                        .build();
+        User domainUser = new User();
+        domainUser.setName("Test User");
+        domainUser.setEmail("test@example.com");
 
-        User savedUser = new User();
-        savedUser.setId(1L);
-        savedUser.setName("Test User");
-        savedUser.setEmail("test@example.com");
+        UserEntity userEntity = new UserEntity();
+        userEntity.setName("Test User");
+        userEntity.setEmail("test@example.com");
 
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        UserEntity savedEntity = new UserEntity();
+        savedEntity.setId(1L);
+        savedEntity.setName("Test User");
+        savedEntity.setEmail("test@example.com");
+
+        User savedDomain = new User();
+        savedDomain.setId(1L);
+        savedDomain.setName("Test User");
+        savedDomain.setEmail("test@example.com");
+
+        when(entityMapper.toEntity(domainUser)).thenReturn(userEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(savedEntity);
+        when(entityMapper.toDomain(savedEntity)).thenReturn(savedDomain);
 
         // When
-        UserResponse response = userService.createUser(request);
+        User response = userService.createUser(domainUser);
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getName()).isEqualTo("Test User");
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).save(any(UserEntity.class));
     }
 
     @Test
-    void givenExistingId_whenGetUser_shouldReturnUserResponse() {
+    void givenExistingId_whenGetUser_shouldReturnUserDomain() {
         // Given
         Long id = 1L;
-        User user = new User();
-        user.setId(id);
-        user.setName("Test User");
-        user.setEmail("test@example.com");
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(id);
+        userEntity.setName("Test User");
+        userEntity.setEmail("test@example.com");
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        User domainUser = new User();
+        domainUser.setId(id);
+        domainUser.setName("Test User");
+        domainUser.setEmail("test@example.com");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(userEntity));
+        when(entityMapper.toDomain(userEntity)).thenReturn(domainUser);
 
         // When
-        UserResponse response = userService.getUserById(id);
+        User response = userService.getUserById(id);
 
         // Then
         assertThat(response.getId()).isEqualTo(id);

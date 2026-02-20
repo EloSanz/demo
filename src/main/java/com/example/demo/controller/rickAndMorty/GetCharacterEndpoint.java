@@ -1,6 +1,7 @@
 package com.example.demo.controller.rickAndMorty;
 
-import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponse;
+import com.example.demo.dto.rickandmorty.RickAndMortyCharacterResponseDto;
+import com.example.demo.mapper.RickAndMortyMapper;
 import com.example.demo.service.RickAndMortyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,12 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class GetCharacterEndpoint {
 
     private final RickAndMortyService service;
+    private final RickAndMortyMapper mapper;
 
-    @Operation(
-            summary = "Get character by ID",
-            description = "Fetches a character from the external Rick and Morty API.")
+    @Operation(summary = "Get character by ID", description = "Fetches a character from the external Rick and Morty API.")
     @GetMapping("/{id}")
-    public ResponseEntity<RickAndMortyCharacterResponse> getCharacter(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getCharacterById(id));
+    public ResponseEntity<RickAndMortyCharacterResponseDto> getCharacter(@PathVariable Long id) {
+        return ResponseEntity.ok(mapper.toResponse(service.getCharacterById(id)));
     }
 }

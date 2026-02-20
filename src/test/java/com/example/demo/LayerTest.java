@@ -15,8 +15,10 @@ public class LayerTest {
     private static final String SERVICE = "service";
     private static final String REPOSITORY = "repository";
     private static final String DOMAIN = "domain";
+    private static final String ENTITY = "entity";
     private static final String CLIENT = "client";
     private static final String DTO = "dto";
+    private static final String MAPPER = "mapper";
     private static final String CONFIG = "config";
 
     private JavaClasses javaClasses;
@@ -43,10 +45,14 @@ public class LayerTest {
                         .definedBy("..repository..")
                         .layer(DOMAIN)
                         .definedBy("..domain..")
+                        .layer(ENTITY)
+                        .definedBy("..entity..")
                         .layer(CLIENT)
                         .definedBy("..client..")
                         .layer(DTO)
                         .definedBy("..dto..")
+                        .layer(MAPPER)
+                        .definedBy("..mapper..")
                         .layer(CONFIG)
                         .definedBy("..config..")
                         .whereLayer(CONTROLLER)
@@ -57,15 +63,15 @@ public class LayerTest {
                         .mayOnlyBeAccessedByLayers(SERVICE, CONFIG)
                         .whereLayer(CLIENT)
                         .mayOnlyBeAccessedByLayers(SERVICE, CONFIG)
+                        .whereLayer(MAPPER)
+                        .mayOnlyBeAccessedByLayers(CONTROLLER, SERVICE, CONFIG)
                         .whereLayer(DOMAIN)
                         .mayOnlyBeAccessedByLayers(
-                                REPOSITORY, SERVICE, CLIENT, CONTROLLER, CONFIG, DTO) // Domain
-                        // is
-                        // core
+                                REPOSITORY, SERVICE, CLIENT, CONTROLLER, MAPPER, CONFIG)
+                        .whereLayer(ENTITY)
+                        .mayOnlyBeAccessedByLayers(REPOSITORY, MAPPER, CONFIG)
                         .whereLayer(DTO)
-                        .mayOnlyBeAccessedByLayers(
-                                CONTROLLER, SERVICE, CLIENT, CONFIG) // DTOs are data
-                        // transfer objects
+                        .mayOnlyBeAccessedByLayers(CONTROLLER, CLIENT, MAPPER, CONFIG)
                         .withOptionalLayers(true);
 
         mainLayer.check(this.javaClasses);

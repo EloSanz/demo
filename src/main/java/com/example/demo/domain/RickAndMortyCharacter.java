@@ -4,21 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
-
+public class RickAndMortyCharacter {
     private Long id;
-
     private String name;
-
-    @ToString.Exclude private String email;
-
-    private String phone;
-
-    private String website;
+    private String status;
+    private String species;
+    private String type;
+    private String gender;
+    private String image;
+    private String url;
+    private String created;
 }
