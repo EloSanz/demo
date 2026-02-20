@@ -15,15 +15,15 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(
                         new Info()
-                                .title("Spring Boot 4 Template API")
+                                .title("Spring Boot 4 Enterprise API")
                                 .version("1.0.0")
                                 .description(
-                                        "Template project demonstrating clean architecture, HTTP Interfaces, and best practices.")
+                                        "Template project demonstrating clean architecture, HTTP Interfaces, and production-ready patterns.")
                                 .contact(
                                         new Contact()
-                                                .name("Tu Nombre")
-                                                .email("tu@email.com")
-                                                .url("https://tusitio.com"))
+                                                .name("Engineering Team")
+                                                .email("engineering@example.com")
+                                                .url("https://example.com"))
                                 .license(
                                         new License()
                                                 .name("MIT License")

@@ -2,12 +2,14 @@ package com.example.demo.service;
 
 import com.example.demo.domain.User;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /** Service interface for User operations. Defines the contract for business logic. */
 public interface UserService {
 
-    /** Get all users from local database */
-    List<User> getAllUsers();
+    /** Get all users from local database with pagination */
+    Page<User> getAllUsers(Pageable pageable);
 
     /** Get a user by ID from local database */
     User getUserById(Long id);

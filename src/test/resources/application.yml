@@ -1,6 +1,6 @@
 external:
   api:
     jsonplaceholder:
-      base-url: "https://jsonplaceholder.typicode.com"
+      base-url: ${wiremock.server.baseUrl:https://jsonplaceholder.typicode.com}
     rickandmorty:
-      base-url: "https://rickandmortyapi.com/api"
+      base-url: ${wiremock.server.baseUrl}/api

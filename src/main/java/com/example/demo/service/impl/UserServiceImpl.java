@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +33,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(entityMapper::toDomain)
-                .collect(Collectors.toList());
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(entityMapper::toDomain);
     }
 
     @Override
@@ -88,24 +88,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User syncUserFromExternalApi(Long externalUserId) {
-        // Fetch from external API client directly as domain object is better, but since
-        // it returns UserResponseDto, we map it
-        // Actually, the architecture says Service shouldn't access DTO.
-        // We will need to have ExternalUserClient return something else or map it
-        // there.
-        // For now, let's fix the entity setter violation first.
         UserResponseDto externalResponse = externalUserClient.getUserById(externalUserId);
         User incomingUser = externalMapper.toDomain(externalResponse);
 
-        // Check if already exists in local DB
         UserEntity existingEntity =
                 userRepository
                         .findByEmail(incomingUser.getEmail())
-                        .orElse(entityMapper.toEntity(incomingUser));
+                        .orElseGet(() -> entityMapper.toEntity(incomingUser));
 
-        // Update with latest data
         entityMapper.updateEntityFromDomain(incomingUser, existingEntity);
-
         UserEntity savedEntity = userRepository.save(existingEntity);
 
         return entityMapper.toDomain(savedEntity);
