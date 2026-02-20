@@ -5,6 +5,7 @@ plugins {
 	id 'checkstyle'
 	id 'com.github.spotbugs' version '6.0.6'
 	id "com.diffplug.spotless" version "6.25.0"
+	id "com.google.osdetector" version "1.7.3"
 }
 
 group = 'com.example'
@@ -45,6 +46,12 @@ repositories {
 	maven { url = 'https://repo.spring.io/snapshot' }
 }
 
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-dependencies:3.4.2"
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -72,6 +79,10 @@ dependencies {
 	
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'org.postgresql:postgresql'
+	
+	if (osdetector.os == "osx") {
+		runtimeOnly "io.netty:netty-resolver-dns-native-macos::${osdetector.classifier}"
+	}
 	
 	// Try individual dependencies if starter-test fails to pull them
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -113,8 +124,37 @@ tasks.register('integrationTest', Test) {
 
 check.dependsOn integrationTest
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-dependencies:3.4.2"
+jar {
+	enabled = false
+}
+
+bootJar {
+	archiveFileName = 'demo-app.jar'
+}
+
+tasks.register('bootRunPostgresLocal') {
+	group = 'application'
+	description = 'Ensures the local demodb exists in Postgres and starts the application.'
+	
+	doFirst {
+		logger.lifecycle("Checking if local database 'demodb' exists in Postgres...")
+		def isWindows = org.gradle.internal.os.OperatingSystem.current().isWindows()
+		exec {
+			if (isWindows) {
+				commandLine 'cmd', '/c', 'psql -lqt | findstr /W demodb || createdb demodb'
+			} else {
+				commandLine 'sh', '-c', 'psql -lqt | cut -d \\| -f 1 | grep -qw demodb || createdb demodb'
+			}
+		}
 	}
+	
+	finalizedBy 'bootRunPostgresLocalExecution'
+}
+
+tasks.register('bootRunPostgresLocalExecution', JavaExec) {
+	group = 'application'
+	mainClass = 'com.example.demo.DemoApplication'
+	classpath = sourceSets.main.runtimeClasspath
+	args = ["--spring.profiles.active=local-pg"]
+	jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
 }

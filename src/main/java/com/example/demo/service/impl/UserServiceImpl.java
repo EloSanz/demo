@@ -86,6 +86,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User syncUserFromExternalApi(Long externalUserId) {
         // Fetch from external API client directly as domain object is better, but since
         // it returns UserResponseDto, we map it

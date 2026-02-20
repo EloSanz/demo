@@ -37,12 +37,24 @@ Controller → Service (Interface) → Service (Implementation) → Repository
 - Java 21 installed
 - Gradle 8.14+ (or use the wrapper `./gradlew`)
 
-### Run the application
+### Run the application (H2)
 ```bash
 ./gradlew bootRun
 ```
+The application will start on `http://localhost:8080`.
 
-The application will start on `http://localhost:8080`
+### Run with PostgreSQL (Local)
+If you have PostgreSQL 17 installed on your Mac/Windows, you can use the automated task that ensures the database exists before starting:
+```bash
+./gradlew bootRunPostgresLocal --console=plain
+```
+*Note: The `--console=plain` flag is recommended to keep the terminal clean while the app is running.*
+
+### Run with Docker Compose
+To start the entire stack (App + PostgreSQL 17) in containers:
+```bash
+docker-compose up -d --build
+```
 
 ### Access H2 Console
 ```
@@ -188,7 +200,8 @@ Here are the most common and useful commands for working with this project:
 
 | Command | Description |
 |---------|-------------|
-| `./gradlew bootRun` | Starts the application locally. |
+| `./gradlew bootRun` | Starts the application locally using H2. |
+| `./gradlew bootRunPostgresLocal` | Ensures local DB exists and starts the app with PostgreSQL. |
 | `./gradlew build` | Compiles code, runs all tests, executes linters, and builds the executable JAR. |
 | `./gradlew clean` | Deletes the `build/` directory, wiping all generated files. |
 | `./gradlew test` | Runs the unit tests. |

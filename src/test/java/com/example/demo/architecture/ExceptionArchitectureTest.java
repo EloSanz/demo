@@ -2,6 +2,7 @@ package com.example.demo.architecture;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
+import com.example.demo.exception.DomainException;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -38,4 +39,13 @@ public class ExceptionArchitectureTest {
                     .should()
                     .dependOnClassesThat()
                     .resideInAPackage("..exception..");
+
+    @ArchTest
+    static final ArchRule domain_exceptions_should_only_be_accessed_by_services_or_advice =
+            classes()
+                    .that()
+                    .areAssignableTo(DomainException.class)
+                    .should()
+                    .onlyBeAccessed()
+                    .byAnyPackage("..service..", "..controller.advice..", "..exception..");
 }

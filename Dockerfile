@@ -7,7 +7,7 @@ RUN ./gradlew bootJar --no-daemon
 # Stage 2: Run the application
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/demo-*.jar app.jar
 
 # Expose the port the app runs on
 EXPOSE 8080
