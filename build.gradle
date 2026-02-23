@@ -6,6 +6,7 @@ plugins {
 	id 'com.github.spotbugs' version '6.0.6'
 	id "com.diffplug.spotless" version "6.25.0"
 	id "com.google.osdetector" version "1.7.3"
+	id 'jacoco'
 }
 
 group = 'com.example'
@@ -123,6 +124,73 @@ tasks.register('integrationTest', Test) {
 }
 
 check.dependsOn integrationTest
+
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+	dependsOn test, integrationTest
+	executionData fileTree(project.buildDir).include("jacoco/*.exec")
+	
+	reports {
+		xml.required = true
+		html.required = true
+	}
+
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: [
+				"com/example/demo/dto/**",
+				"com/example/demo/domain/**",
+				"com/example/demo/mapper/**",
+				"com/example/demo/config/**",
+				"com/example/demo/DemoApplication.class",
+				"com/example/demo/exception/**",
+				"com/example/demo/aspect/**"
+			])
+		}))
+	}
+}
+
+tasks.register('jacocoFullReport', JacocoReport) {
+    description = "Generates a combined JaCoCo report for unit and integration tests."
+    group = "verification"
+    
+    dependsOn test, integrationTest
+    
+    executionData fileTree(project.buildDir).include("jacoco/*.exec")
+    
+    classDirectories.setFrom(files(sourceSets.main.output.classesDirs.collect {
+        fileTree(dir: it, exclude: [
+            "com/example/demo/dto/**",
+            "com/example/demo/domain/**",
+            "com/example/demo/mapper/**",
+            "com/example/demo/config/**",
+            "com/example/demo/DemoApplication.class",
+            "com/example/demo/exception/**",
+            "com/example/demo/aspect/**"
+        ])
+    }))
+    
+    sourceDirectories.setFrom(files(sourceSets.main.allSource.srcDirs))
+    
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+	dependsOn jacocoTestReport
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.50 // Initial threshold, can be increased later
+			}
+		}
+	}
+}
 
 jar {
 	enabled = false

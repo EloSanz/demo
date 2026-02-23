@@ -1,0 +1,16 @@
+repos:
+  - repo: local
+    hooks:
+      - id: spotless-apply
+        name: Spotless Apply
+        entry: ./gradlew spotlessApply
+        language: system
+        files: \.java$
+        pass_filenames: false
+      - id: gradle-check
+        name: Gradle Check
+        entry: ./gradlew check
+        language: system
+        files: \.java$
+        pass_filenames: false
+        stages: [push] # Run heavy checks only on push
