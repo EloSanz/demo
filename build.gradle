@@ -69,6 +69,11 @@ dependencies {
     // AOP
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+	// AWS
+	implementation platform('software.amazon.awssdk:bom:2.25.0')
+	implementation 'software.amazon.awssdk:s3'
+	implementation 'software.amazon.awssdk:aws-crt-client'
+
 	developmentOnly 'org.springframework.boot:spring-boot-devtools:3.2.4'
 
 	compileOnly 'org.projectlombok:lombok'
