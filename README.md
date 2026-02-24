@@ -27,6 +27,7 @@ OpenAPI / DTO    AOP Logging          External API Clients (HTTP Interfaces)
 - ✅ **JPA Auditing**: Automatic `createdAt` and `updatedAt` tracking via `BaseEntity`.
 - ✅ **Pagination & Sorting**: Full support for paginated results in User API (`Pageable`).
 - ✅ **Multi-API Integration**: Demonstrations with JSONPlaceholder and **Rick and Morty API**.
+- ✅ **AWS S3 Integration**: Full CRUD file storage (upload, download, list, delete) via the AWS SDK v2.
 - ✅ **Database Agnostic**: H2 for development, PostgreSQL-ready with automated setup tasks.
 - ✅ **OpenAPI 3.0 (Swagger)**: Comprehensive API documentation at `/swagger-ui.html`.
 - ✅ **Infrastructure as Code**: `docker-compose.yml` for local environment consistency.
@@ -38,6 +39,7 @@ OpenAPI / DTO    AOP Logging          External API Clients (HTTP Interfaces)
 - **Java 21** (LTS)
 - **Spring Boot 4.0.2**
 - **Spring Data JPA** (Hibernate 6)
+- **AWS SDK v2** (`software.amazon.awssdk:s3`): S3 file storage integration.
 - **MapStruct**: Type-safe bean mapping between Entities and DTOs.
 - **Lombok**: Boilerplate reduction.
 - **WireMock**: Reliable external API mocking for integration tests.
@@ -48,6 +50,7 @@ OpenAPI / DTO    AOP Logging          External API Clients (HTTP Interfaces)
 ### Prerequisites
 - Java 21+
 - Docker (optional, for PostgreSQL)
+- AWS credentials configured (for S3 features) — see [AWS S3 Configuration](#-aws-s3-configuration)
 
 ### Run with H2 (In-memory)
 ```bash
@@ -76,6 +79,14 @@ docker-compose up -d --build
 | POST | `/api/users` | Create user | `UserRequestDto` |
 | PUT | `/api/users/{id}` | Update user | `UserRequestDto` |
 | DELETE | `/api/users/{id}` | Delete user | |
+
+### Storage — AWS S3
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/storage/upload` | Upload a file (`multipart/form-data`, param: `file`) |
+| GET | `/api/storage/files` | List all files in the S3 bucket |
+| GET | `/api/storage/files/{fileName}` | Download a file by name |
+| DELETE | `/api/storage/files/{fileName}` | Delete a file by name |
 
 ### Rick and Morty Integration
 | Method | Endpoint | Description |
@@ -114,6 +125,25 @@ Reports are available at `build/reports/jacoco/jacocoFullReport/html/index.html`
 ./gradlew spotlessApply      # Fix formatting issues automatically
 ```
 
+## ☁️ AWS S3 Configuration
+
+The S3 integration uses the **AWS SDK v2 Default Credentials Provider**, which automatically resolves credentials in the following order:
+
+1. `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` environment variables
+2. `~/.aws/credentials` file (configured via `aws configure`)
+3. IAM Role (EC2/ECS/Lambda instance profile)
+
+**Required application property:**
+```yaml
+aws:
+  s3:
+    bucket-name: your-bucket-name   # defaults to 'myawsbucketelito' if not set
+```
+
+**Configured region:** `us-east-2` (Ohio). Change in `AwsS3Config` if needed.
+
+> ⚠️ **Tests**: S3 is fully mocked in all tests via `@MockitoBean`. No AWS credentials are needed to run the test suite.
+
 ## 🛡️ Git Hooks & CI
 
 ### Pre-commit Hooks
@@ -136,12 +166,17 @@ A CI pipeline is configured in `.github/workflows/ci.yml` that:
 ```
 src/main/java/com/example/demo/
 ├── aspect/              # Aspect Oriented Programming (Logging)
-├── client/              # Declarative HTTP REST Clients
+├── client/              # Declarative HTTP REST Clients + AWS config
 ├── config/              # Infrastructure & OpenApi config
-├── controller/          # REST Endpoints
-├── domain/              # JPA Entities & BaseEntity
+├── controller/
+│   ├── aws/             # S3 Storage endpoints
+│   ├── rickAndMorty/    # Rick & Morty integration endpoints
+│   └── users/           # User CRUD endpoints
+├── domain/              # Domain models
 ├── dto/                 # API Data Transfer Objects
-├── exception/           # Global Exception Handling
+├── exception/
+│   ├── storage/         # S3-specific domain exceptions
+│   └── users/           # User-specific domain exceptions
 ├── mapper/              # MapStruct interfaces
 ├── repository/          # JPA Repositories
 └── service/             # Business Logic (Interface + Impl)
