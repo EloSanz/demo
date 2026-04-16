@@ -21,7 +21,15 @@ func NewUserHandler(service user.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
-// GetAll handles GET /api/users?page=1&size=10
+// GetAll returns all users in the system with pagination.
+// @Summary List all users
+// @Description get all users with pagination support
+// @Tags users
+// @Produce  json
+// @Param page query int false "Page number (default: 1)"
+// @Param size query int false "Page size (default: 10)"
+// @Success 200 {object} PageResponse
+// @Router /api/users [get]
 func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
 	page := queryInt(r, "page", 1)
 	size := queryInt(r, "size", 10)
@@ -45,7 +53,15 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) error {
 	}, http.StatusOK)
 }
 
-// GetByID handles GET /api/users/{id}
+// GetByID returns a single user by ID.
+// @Summary Get user by ID
+// @Description get user by ID
+// @Tags users
+// @Produce  json
+// @Param id path int true "User ID"
+// @Success 200 {object} UserResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/users/{id} [get]
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	id, err := web.ParamInt(r, "id")
 	if err != nil {
@@ -67,7 +83,16 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) error {
 	return web.EncodeJSON(w, response, http.StatusOK)
 }
 
-// Create handles POST /api/users
+// Create creates a new user.
+// @Summary Create a new user
+// @Description create a new user from JSON body
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param user body CreateUserRequest true "User data"
+// @Success 201 {object} user.User
+// @Failure 400 {object} map[string]string
+// @Router /api/users [post]
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	var req CreateUserRequest
 	if err := web.DecodeJSON(r, &req); err != nil {
@@ -92,7 +117,17 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	return web.EncodeJSON(w, mapToResponse(created), http.StatusCreated)
 }
 
-// Update handles PUT /api/users/{id}
+// Update updates an existing user.
+// @Summary Update user
+// @Description update user by ID from JSON body
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param id path int true "User ID"
+// @Param user body UpdateUserRequest true "User data"
+// @Success 200 {object} UserResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/users/{id} [put]
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	id, err := web.ParamInt(r, "id")
 	if err != nil {
@@ -122,7 +157,14 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) error {
 	return web.EncodeJSON(w, mapToResponse(updated), http.StatusOK)
 }
 
-// Delete handles DELETE /api/users/{id}
+// Delete removes a user.
+// @Summary Delete user
+// @Description delete user by ID
+// @Tags users
+// @Param id path int true "User ID"
+// @Success 204 "No Content"
+// @Failure 404 {object} map[string]string
+// @Router /api/users/{id} [delete]
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	id, err := web.ParamInt(r, "id")
 	if err != nil {
@@ -158,7 +200,15 @@ func (h *UserHandler) FetchExternal(w http.ResponseWriter, r *http.Request) erro
 	return web.EncodeJSON(w, responses, http.StatusOK)
 }
 
-// SyncExternal handles POST /api/users/sync/{externalID}
+// SyncExternal syncs a user from JSONPlaceholder.
+// @Summary Sync external user
+// @Description fetch user from external API and save it locally
+// @Tags users
+// @Produce  json
+// @Param externalID path int true "External User ID"
+// @Success 201 {object} UserResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/users/sync/{externalID} [post]
 func (h *UserHandler) SyncExternal(w http.ResponseWriter, r *http.Request) error {
 	externalID, err := web.ParamInt(r, "externalID")
 	if err != nil {

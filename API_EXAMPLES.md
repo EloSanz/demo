@@ -1,22 +1,29 @@
 # Ejemplos de Uso de la API (Go Port)
 
-Esta guía muestra cómo interactuar con los nuevos endpoints de infraestructura y observación.
+## ✉️ Notificaciones Asincrónicas
+
+Este endpoint pone un mensaje en cola (SQS o Memoria) para ser procesado por un worker en segundo plano.
+
+```bash
+curl -X POST http://localhost:8080/api/notifications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "welcome_email",
+    "content": "Hola Elo! Bienvenido al sistema asincrónico"
+  }'
+```
+**Respuesta (202 Accepted):** `{"status":"queued"}`
 
 ---
 
 ## 📊 Observabilidad y Monitoreo
 
 ### 1. Métricas de Prometheus
-La aplicación expone métricas nativas para ser consumidas por un servidor de Prometheus.
-
 ```bash
 curl http://localhost:8080/metrics
 ```
-*Tip: Busca `http_requests_total` para ver cuántos hits recibió cada endpoint.*
 
 ### 2. Health Check
-Verifica que la app esté viva y tenga conexión a la base de datos (Postgres o SQLite).
-
 ```bash
 curl http://localhost:8080/health
 ```
@@ -25,26 +32,15 @@ curl http://localhost:8080/health
 
 ## 🛡️ Pruebas de Resiliencia
 
-### 1. Test de Graceful Shutdown
-Para verificar que el apagado no corta conexiones activas:
-
-1.  Llama al endpoint lento:
-    ```bash
-    curl http://localhost:8080/api/test/slow
-    ```
-2.  Apaga el servicio inmediatamente (ej: `docker-compose stop api`).
-3.  El `curl` debería terminar con éxito antes de que la app se cierre.
+### 1. Test de Graceful Shutdown (Lento)
+```bash
+curl http://localhost:8080/api/test/slow
+```
+*Si apagas la app mientras corre, el worker de notificaciones y este request terminarán antes del cierre.*
 
 ---
 
-## 🧪 Comandos de Testing
-
-### Suite completa
+## 🧪 Testing Unitario e Integración
 ```bash
 go test ./... -v
-```
-
-### Solo un paquete (sin cache)
-```bash
-go test -count=1 ./internal/user/handler/... -v
 ```

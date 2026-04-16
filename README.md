@@ -5,54 +5,51 @@ This project is a high-performance, modular Go port of an enterprise Spring Boot
 ## Features
 
 - **GORM Persistence**: Multi-DB support (PostgreSQL & SQLite) with automatic migrations.
-- **Observability**: Built-in Prometheus metrics at `/metrics` and structured logging.
-- **Resilience**: Graceful shutdown and global recovery middleware.
+- **Asynchronous Messaging**: Built-in support for **AWS SQS** and **In-Memory Go Channels** via a notification domain.
+- **Observability**: Prometheus metrics at `/metrics` and structured logging with error tracing.
+- **Resilience**: Graceful shutdown (20s timeout) and global recovery middleware.
 - **Storage**: AWS S3 integration.
-- **Modular Design**: Decoupled database and routing initialization.
+- **Modular Design**: Decoupled database, notification engine, and routing initialization.
 - **Testing**: Full suite of unit and integration tests with HTTP mocking.
-
-## Requirements
-
-- Go 1.25+
-- Docker & Docker Compose (optional for full stack run)
 
 ## Getting Started
 
-### 1. Fast Development (SQLite)
+### 1. Run with In-Memory Assets (Fastest)
 
 ```bash
-# Uses default config (SQLite)
+# Uses SQLite and In-Memory Notifications by default
 air
 ```
 
-### 2. Full Production Stack (Postgres)
+### 2. Run with Full AWS/Postgres Stack
 
 ```bash
+# Set your environment variables
+export NOTIFICATION_ENGINE=sqs
+export AWS_SQS_QUEUE_URL="your-queue-url"
 docker-compose up -d
 ```
 
 ### 3. Running Tests
 
 ```bash
-# Run all tests (Unit + Integration)
 go test ./... -v
 ```
 
-## Infrastructure & Monitoring
+## Monitoring & Infrastructure
 
-- **Health Check**: `GET /health` (Checks DB connectivity).
-- **Metrics**: `GET /metrics` (Prometheus format).
-- **Graceful Shutdown**: The server waits 20s for active requests before stopping.
+- **Health Check**: `GET /health`
+- **Metrics**: `GET /metrics`
+- **Notifications**: `POST /api/notifications` (Async)
 
 ## Project Structure
 
 ```text
-├── cmd/api/          # Main entrypoint (Orchestration only)
+├── cmd/api/          # Orchestration entrypoint
 ├── internal/
-│   ├── api/          # Routing Index & Middleware Assembly
-│   ├── database/     # DB Initialization & GORM Config
-│   ├── config/       # Structured Env Var Configuration
-│   └── [domain]/     # Bounded Contexts (Logic + Handlers + Tests)
-├── infrastructure/   # External Adapters (Repo, HTTP Clients, AWS)
-└── pkg/web/          # HTTP Utilities (JSON, Error handling, Metrics middleware)
+│   ├── api/          # Routing Index & Middleware
+│   ├── notification/ # Async Messaging Domain (SQS/Memory)
+│   ├── database/     # DB Initialization
+│   ├── [domain]/     # Logic, Handlers, and Repos
+└── pkg/web/          # HTTP Utilities & Adapters
 ```

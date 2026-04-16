@@ -14,6 +14,8 @@ import (
 	"github.com/elosanz/demo/internal/user"
 	userhandler "github.com/elosanz/demo/internal/user/handler"
 	"github.com/elosanz/demo/pkg/web"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	_ "github.com/elosanz/demo/docs"
 	"gorm.io/gorm"
 )
 
@@ -37,6 +39,7 @@ func NewHandler(
 	// ─── System Routes ───────────────────────────────────────────────────────
 	mux.HandleFunc("GET /health", web.HealthHandler(sqlDB))
 	mux.Handle("GET /metrics", web.MetricsHandler())
+	mux.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
 
 	// ─── Notification Routes ─────────────────────────────────────────────────
 	mux.HandleFunc("POST /api/notifications", web.Adapt(notifH.Publish))
