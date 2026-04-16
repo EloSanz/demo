@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elosanz/demo/internal/notification"
+	notificationhandler "github.com/elosanz/demo/internal/notification/handler"
 	"github.com/elosanz/demo/internal/rickandmorty"
 	rickandmortyhandler "github.com/elosanz/demo/internal/rickandmorty/handler"
 	"github.com/elosanz/demo/internal/storage"
@@ -21,6 +23,7 @@ func NewHandler(
 	userSvc user.UserService,
 	rmSvc rickandmorty.RickAndMortyService,
 	s3Svc storage.StorageService,
+	notifSvc notification.NotificationService,
 ) http.Handler {
 	mux := http.NewServeMux()
 	
@@ -29,10 +32,14 @@ func NewHandler(
 	// Handlers
 	userH := userhandler.NewUserHandler(userSvc)
 	rmH := rickandmortyhandler.NewRickAndMortyHandler(rmSvc)
+	notifH := notificationhandler.NewNotificationHandler(notifSvc)
 
 	// ─── System Routes ───────────────────────────────────────────────────────
 	mux.HandleFunc("GET /health", web.HealthHandler(sqlDB))
 	mux.Handle("GET /metrics", web.MetricsHandler())
+
+	// ─── Notification Routes ─────────────────────────────────────────────────
+	mux.HandleFunc("POST /api/notifications", web.Adapt(notifH.Publish))
 
 	// ─── User Routes ─────────────────────────────────────────────────────────
 	mux.HandleFunc("GET /api/users", web.Adapt(userH.GetAll))

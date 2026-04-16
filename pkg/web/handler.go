@@ -1,6 +1,9 @@
 package web
 
-import "net/http"
+import (
+	"log/slog"
+	"net/http"
+)
 
 // HandlerFunc is an HTTP handler that returns an error.
 // Handlers return nil on success; return web.NewError for 4xx/5xx responses.
@@ -12,6 +15,7 @@ type HandlerFunc func(http.ResponseWriter, *http.Request) error
 func Adapt(h HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h(w, r); err != nil {
+			slog.Error("handler error", "method", r.Method, "path", r.URL.Path, "error", err)
 			WriteError(w, err)
 		}
 	}

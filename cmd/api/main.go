@@ -12,6 +12,7 @@ import (
 	"github.com/elosanz/demo/internal/api"
 	"github.com/elosanz/demo/internal/config"
 	"github.com/elosanz/demo/internal/database"
+	"github.com/elosanz/demo/internal/notification"
 	"github.com/elosanz/demo/internal/rickandmorty"
 	"github.com/elosanz/demo/internal/storage"
 	"github.com/elosanz/demo/internal/user"
@@ -52,13 +53,29 @@ func run() error {
 		s3Svc = storage.NewS3StorageService(s3Client)
 	}
 
+	// --------------------------------------------------------------------------
+	// NOTIFICATION SERVICE: Dynamic Selection
+	// --------------------------------------------------------------------------
+	var notifSvc notification.NotificationService
+	if cfg.NotificationEngine == "sqs" {
+		sqsClient, err := awsinfra.NewSQSClient(ctx)
+		if err != nil {
+			return fmt.Errorf("initializing AWS SQS client: %w", err)
+		}
+		notifSvc = notification.NewSQSNotificationService(sqsClient, cfg.SQSQueueURL)
+	} else {
+		// Default to Memory for local development
+		notifSvc = notification.NewMemoryNotificationService(100)
+	}
+	notifSvc.StartWorker(ctx)
+
 	// 4. Services
 	userRepo := infrapostgres.NewUserGORMRepository(db)
 	userSvc := user.NewUserService(userRepo, externalUserClient)
 	rmSvc := rickandmorty.NewRickAndMortyService(externalRMClient)
 
 	// 5. Router Index
-	handler := api.NewHandler(db, userSvc, rmSvc, s3Svc)
+	handler := api.NewHandler(db, userSvc, rmSvc, s3Svc, notifSvc)
 
 	// 6. Server Start
 	server := &http.Server{
