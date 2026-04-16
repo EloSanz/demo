@@ -1,6 +1,3 @@
-// Package postgres provides the database infrastructure adapter for the user domain.
-// Despite the package name matching the production target, this file uses database/sql
-// and works with both SQLite (development) and PostgreSQL (production) via the same queries.
 package postgres
 
 import (
@@ -8,12 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/elosanz/demo/internal/user"
 )
 
 // UserSQLiteRepository implements user.UserRepository using database/sql.
-// The constructor name uses the technology suffix as required by go-structs-interfaces-rules.
 type UserSQLiteRepository struct {
 	db *sql.DB
 }
@@ -32,7 +29,7 @@ func (r *UserSQLiteRepository) FindAll(ctx context.Context, page int, size int) 
 	}
 
 	rows, err := r.db.QueryContext(ctx,
-		"SELECT id, name, email, phone, website FROM users ORDER BY id ASC LIMIT ? OFFSET ?",
+		"SELECT id, name, email, phone, website, created_at, updated_at FROM users ORDER BY id ASC LIMIT ? OFFSET ?",
 		size, offset,
 	)
 	if err != nil {
@@ -42,13 +39,10 @@ func (r *UserSQLiteRepository) FindAll(ctx context.Context, page int, size int) 
 
 	var users []user.User
 	for rows.Next() {
-		var u user.User
-		var phone, website sql.NullString
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &phone, &website); err != nil {
+		u, err := scanUser(rows.Scan)
+		if err != nil {
 			return nil, 0, fmt.Errorf("scanning user row: %w", err)
 		}
-		u.Phone = phone.String
-		u.Website = website.String
 		users = append(users, u)
 	}
 	if err := rows.Err(); err != nil {
@@ -61,36 +55,30 @@ func (r *UserSQLiteRepository) FindAll(ctx context.Context, page int, size int) 
 }
 
 func (r *UserSQLiteRepository) FindByID(ctx context.Context, id int64) (*user.User, error) {
-	var u user.User
-	var phone, website sql.NullString
-	err := r.db.QueryRowContext(ctx,
-		"SELECT id, name, email, phone, website FROM users WHERE id = ?", id,
-	).Scan(&u.ID, &u.Name, &u.Email, &phone, &website)
+	row := r.db.QueryRowContext(ctx,
+		"SELECT id, name, email, phone, website, created_at, updated_at FROM users WHERE id = ?", id,
+	)
+	u, err := scanUser(row.Scan)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("querying user by id %d: %w", id, err)
 	}
-	u.Phone = phone.String
-	u.Website = website.String
 	return &u, nil
 }
 
 func (r *UserSQLiteRepository) FindByEmail(ctx context.Context, email string) (*user.User, error) {
-	var u user.User
-	var phone, website sql.NullString
-	err := r.db.QueryRowContext(ctx,
-		"SELECT id, name, email, phone, website FROM users WHERE email = ?", email,
-	).Scan(&u.ID, &u.Name, &u.Email, &phone, &website)
+	row := r.db.QueryRowContext(ctx,
+		"SELECT id, name, email, phone, website, created_at, updated_at FROM users WHERE email = ?", email,
+	)
+	u, err := scanUser(row.Scan)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("querying user by email: %w", err)
 	}
-	u.Phone = phone.String
-	u.Website = website.String
 	return &u, nil
 }
 
@@ -117,14 +105,19 @@ func (r *UserSQLiteRepository) Save(ctx context.Context, u user.User) (user.User
 	if err != nil {
 		return user.User{}, fmt.Errorf("getting last insert id: %w", err)
 	}
-	u.ID = id
-	return u, nil
+	// Re-read to get DB-generated created_at / updated_at values.
+	saved, err := r.FindByID(ctx, id)
+	if err != nil {
+		return user.User{}, fmt.Errorf("reading saved user: %w", err)
+	}
+	return *saved, nil
 }
 
 func (r *UserSQLiteRepository) Update(ctx context.Context, u user.User) (user.User, error) {
+	now := time.Now().UTC()
 	result, err := r.db.ExecContext(ctx,
-		"UPDATE users SET name = ?, email = ?, phone = ?, website = ? WHERE id = ?",
-		u.Name, u.Email, nullString(u.Phone), nullString(u.Website), u.ID,
+		"UPDATE users SET name = ?, email = ?, phone = ?, website = ?, updated_at = ? WHERE id = ?",
+		u.Name, u.Email, nullString(u.Phone), nullString(u.Website), now, u.ID,
 	)
 	if err != nil {
 		return user.User{}, fmt.Errorf("updating user %d: %w", u.ID, err)
@@ -136,6 +129,7 @@ func (r *UserSQLiteRepository) Update(ctx context.Context, u user.User) (user.Us
 	if rows == 0 {
 		return user.User{}, user.ErrNotFound
 	}
+	u.UpdatedAt = now
 	return u, nil
 }
 
@@ -154,7 +148,16 @@ func (r *UserSQLiteRepository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-// nullString converts an empty string to sql.NullString{Valid: false}.
+// scanUser uses the given Scan function to read a user row (works with both *sql.Row and *sql.Rows).
+func scanUser(scan func(dest ...any) error) (user.User, error) {
+	var u user.User
+	var phone, website sql.NullString
+	err := scan(&u.ID, &u.Name, &u.Email, &phone, &website, &u.CreatedAt, &u.UpdatedAt)
+	u.Phone = phone.String
+	u.Website = website.String
+	return u, err
+}
+
 func nullString(s string) sql.NullString {
 	if s == "" {
 		return sql.NullString{}

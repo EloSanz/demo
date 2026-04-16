@@ -92,11 +92,13 @@ func main() {
 
 func runMigrations(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
-		id      INTEGER PRIMARY KEY AUTOINCREMENT,
-		name    TEXT    NOT NULL,
-		email   TEXT    NOT NULL UNIQUE,
-		phone   TEXT,
-		website TEXT
+		id         INTEGER  PRIMARY KEY AUTOINCREMENT,
+		name       TEXT     NOT NULL,
+		email      TEXT     NOT NULL UNIQUE,
+		phone      TEXT,
+		website    TEXT,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	)`)
 	return err
 }

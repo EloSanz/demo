@@ -1,14 +1,19 @@
 package user
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 // User is the domain entity for a registered user.
 type User struct {
-	ID      int64
-	Name    string
-	Email   string
-	Phone   string
-	Website string
+	ID        int64
+	Name      string
+	Email     string
+	Phone     string
+	Website   string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // ErrNotFound is returned when a user cannot be found.

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/elosanz/demo/internal/user"
 )
 
@@ -22,11 +24,13 @@ type UpdateUserRequest struct {
 
 // UserResponse is the API representation of a user.
 type UserResponse struct {
-	ID      int64  `json:"id"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Phone   string `json:"phone"`
-	Website string `json:"website"`
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Phone     string    `json:"phone"`
+	Website   string    `json:"website"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // PageResponse is a paginated response wrapper for users.
@@ -46,5 +50,13 @@ func (r UpdateUserRequest) toDomain() user.User {
 }
 
 func mapToResponse(u user.User) UserResponse {
-	return UserResponse{ID: u.ID, Name: u.Name, Email: u.Email, Phone: u.Phone, Website: u.Website}
+	return UserResponse{
+		ID:        u.ID,
+		Name:      u.Name,
+		Email:     u.Email,
+		Phone:     u.Phone,
+		Website:   u.Website,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+	}
 }
