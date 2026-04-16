@@ -116,6 +116,7 @@ func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (U
 		return updated, nil
 	}
 
+	external.ID = 0
 	saved, err := s.repo.Save(ctx, *external)
 	if err != nil {
 		return User{}, fmt.Errorf("saving synced user: %w", err)

@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
-	awsinfra "github.com/elosanz/demo/infrastructure/aws"
-	"github.com/elosanz/demo/infrastructure/httpclient"
-	"github.com/elosanz/demo/infrastructure/postgres"
+	"github.com/elosanz/demo/internal/config"
 	"github.com/elosanz/demo/internal/rickandmorty"
 	rickandmortyhandler "github.com/elosanz/demo/internal/rickandmorty/handler"
 	"github.com/elosanz/demo/internal/storage"
@@ -19,49 +19,75 @@ import (
 	userhandler "github.com/elosanz/demo/internal/user/handler"
 	"github.com/elosanz/demo/pkg/web"
 
-	_ "modernc.org/sqlite"
+	awsinfra "github.com/elosanz/demo/infrastructure/aws"
+	"github.com/elosanz/demo/infrastructure/httpclient"
+	infrapostgres "github.com/elosanz/demo/infrastructure/postgres"
+
+	"github.com/glebarez/sqlite"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
-	ctx := context.Background()
-
-	dbPath := os.Getenv("DATABASE_PATH")
-	if dbPath == "" {
-		dbPath = "file::memory:?cache=shared"
+	if err := run(); err != nil {
+		slog.Error("application failed", "error", err)
+		os.Exit(1)
 	}
-	db, err := sql.Open("sqlite", dbPath)
+}
+
+func run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	cfg := config.Load()
+
+	// ─── Database ────────────────────────────────────────────────────────────
+	var dialector gorm.Dialector
+	if cfg.DBEngine == "postgres" {
+		slog.Info("using postgres database")
+		dialector = postgres.Open(cfg.DBDSN)
+	} else {
+		slog.Info("using sqlite database", "path", cfg.DBDSN)
+		dialector = sqlite.Open(cfg.DBDSN)
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
-		slog.Error("opening database", "error", err)
-		os.Exit(1)
-	}
-	defer db.Close()
-
-	if err := runMigrations(db); err != nil {
-		slog.Error("running migrations", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("connecting to database: %w", err)
 	}
 
+	if err := db.AutoMigrate(&user.User{}); err != nil {
+		return fmt.Errorf("running auto-migrations: %w", err)
+	}
+
+	sqlDB, _ := db.DB()
+
+	// ─── External HTTP clients ───────────────────────────────────────────────
 	httpClient := &http.Client{Timeout: 10 * time.Second}
+	
+	externalUserClient := httpclient.NewJSONPlaceholderClient(cfg.JSONPlaceholderURL, httpClient)
+	externalRMClient := httpclient.NewRickAndMortyHTTPClient(cfg.RickAndMortyURL, httpClient)
 
-	jpBaseURL := envOr("JSONPLACEHOLDER_BASE_URL", "https://jsonplaceholder.typicode.com")
-	rmBaseURL := envOr("RICKANDMORTY_BASE_URL", "https://rickandmortyapi.com/api")
-
-	externalUserClient := httpclient.NewJSONPlaceholderClient(jpBaseURL, httpClient)
-	externalRMClient := httpclient.NewRickAndMortyHTTPClient(rmBaseURL, httpClient)
-
+	// ─── AWS S3 ──────────────────────────────────────────────────────────────
 	s3Client, err := awsinfra.NewS3Client(ctx)
 	if err != nil {
 		slog.Warn("AWS S3 unavailable — storage endpoints disabled", "error", err)
 	}
 
-	userRepo := postgres.NewUserSQLiteRepository(db)
+	// ─── Dependencies ────────────────────────────────────────────────────────
+	userRepo := infrapostgres.NewUserGORMRepository(db)
 	userSvc := user.NewUserService(userRepo, externalUserClient)
 	rmSvc := rickandmorty.NewRickAndMortyService(externalRMClient)
 
 	userH := userhandler.NewUserHandler(userSvc)
 	rmH := rickandmortyhandler.NewRickAndMortyHandler(rmSvc)
 
+	// ─── Routing ─────────────────────────────────────────────────────────────
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /health", web.HealthHandler(sqlDB))
 
 	mux.HandleFunc("GET /api/users", web.Adapt(userH.GetAll))
 	mux.HandleFunc("GET /api/users/external", web.Adapt(userH.FetchExternal))
@@ -82,30 +108,45 @@ func main() {
 		mux.HandleFunc("DELETE /api/storage/files/{name}", web.Adapt(storageH.Delete))
 	}
 
-	addr := ":" + envOr("PORT", "8080")
-	slog.Info("starting server", "addr", addr)
-	if err := http.ListenAndServe(addr, web.RequestLogger(mux)); err != nil {
-		slog.Error("server stopped", "error", err)
-		os.Exit(1)
-	}
-}
+	// Slow endpoint for testing Graceful Shutdown
+	mux.HandleFunc("GET /api/test/slow", func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("slow request started")
+		time.Sleep(15 * time.Second)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"status":"slow success"}`))
+		slog.Info("slow request finished")
+	})
 
-func runMigrations(db *sql.DB) error {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users (
-		id         INTEGER  PRIMARY KEY AUTOINCREMENT,
-		name       TEXT     NOT NULL,
-		email      TEXT     NOT NULL UNIQUE,
-		phone      TEXT,
-		website    TEXT,
-		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-	)`)
-	return err
-}
+	// ─── Server Start ────────────────────────────────────────────────────────
+	handler := web.Recovery(web.RequestLogger(mux))
 
-func envOr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
+	server := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: handler,
 	}
-	return fallback
+
+	serverError := make(chan error, 1)
+	go func() {
+		slog.Info("starting server", "addr", server.Addr)
+		serverError <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverError:
+		return err
+	case <-ctx.Done():
+		slog.Info("shutting down server")
+		
+		// Increased timeout to 20s to allow slow requests to finish
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			server.Close()
+			return err
+		}
+		slog.Info("graceful shutdown complete")
+	}
+
+	return nil
 }

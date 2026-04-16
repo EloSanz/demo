@@ -1,15 +1,17 @@
 # Demo API (Go Port)
 
-This project is a Go port of an enterprise-grade Spring Boot application, maintaining Clean Architecture and DDD principles.
+This project is a Go port of an enterprise-grade Spring Boot application, maintaining Clean Architecture and DDD principles, now powered by **GORM**.
 
 ## Features
 
-- **Users Domain**: CRUD operations with SQLite local persistence.
+- **Users Domain**: CRUD operations with **GORM** persistence.
+- **Auto-Migrations**: Database schema managed automatically by GORM.
 - **Rick and Morty Integration**: Consume external API with filtering and pagination.
 - **External Sync**: Fetch users from JSONPlaceholder and upsert into local database.
 - **Storage Service**: AWS S3 integration for file upload/download/delete/list.
 - **Thin Web Wrapper**: Custom `pkg/web` following internal infrastructure conventions.
 - **Developer Experience**: Hot-reload with `air` and structured request logging.
+- **Testing**: Comprehensive Unit and **Integration Tests** (using `httptest` and in-memory SQLite).
 
 ## Requirements
 
@@ -20,58 +22,29 @@ This project is a Go port of an enterprise-grade Spring Boot application, mainta
 
 ### 1. Environment Configuration
 
-The following optional environment variables are supported:
-
 - `PORT`: Server port (default: `8080`).
-- `DATABASE_PATH`: Path to SQLite file (default: `:memory:`).
+- `DATABASE_PATH`: Path to SQLite file (default: `demo.db`).
 - `AWS_S3_BUCKET`: S3 Bucket name (default: `myawsbucketelito`).
-- `AWS_REGION`: AWS Region (reads from `~/.aws/config` if not set).
 
-### 2. Run Local Development (with Hot-Reload)
+### 2. Run Local Development
 
-First, install `air`:
-```bash
-go install github.com/air-verse/air@latest
-```
-
-Then start the application:
 ```bash
 air
 ```
 
-### 3. Run with Docker
+### 3. Running Tests
 
-Build the image:
-```bash
-docker build -t demo-go .
-```
-
-Run the container:
-```bash
-docker run -p 8080:8080 demo-go
-```
-
-## Running Tests
-
-To execute the unit tests (currently 14 test cases):
+Execute both unit and integration tests:
 ```bash
 go test ./... -v
 ```
 
-## API Documentation
-
-A Postman collection is available at [postman_collection.json](./postman_collection.json).
-
 ## Project Structure
 
 ```text
-├── cmd/api/          # Application entrypoint
-├── infrastructure/   # External adapters (DB, HTTP Clients, AWS)
+├── cmd/api/          # Application entrypoint (GORM Init & AutoMigrate)
+├── infrastructure/   # External adapters (GORM Repository, HTTP Clients, AWS)
 ├── internal/         # Bounded Contexts (User, RickAndMorty, Storage)
 ├── pkg/web/          # HTTP Infrastructure wrapper
-└── migrations/       # SQL migrations
+└── tests/            # Integration logic (within handler packages)
 ```
-
-## License
-
-MIT

@@ -1,83 +1,42 @@
 # Ejemplos de Uso de la API (Go Port)
 
-Esta guía muestra cómo interactuar con la API usando `curl` o `httpie`.
+Esta guía muestra cómo interactuar con la API. Gracias a **GORM**, la base de datos se gestiona sola.
 
 ---
 
 ## 👤 Dominio: Usuarios
 
-### 1. Crear Usuario
+### 1. Crear Usuario (Auditoría Automática)
+Al crear un usuario, GORM setea `created_at` y `updated_at` automáticamente.
+
 ```bash
 curl -X POST http://localhost:8080/api/users \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Elo Sanz",
-    "email": "elo@example.com",
-    "phone": "555-1234",
-    "website": "elosanz.com"
-  }'
-```
-
-### 2. Obtener Todos los Usuarios (paginado)
-```bash
-curl "http://localhost:8080/api/users?page=1&size=5"
-```
-
-### 3. Sincronizar desde API Externa (JSONPlaceholder)
-```bash
-curl -X POST http://localhost:8080/api/users/sync/1
+  -d '{"name": "GORM User", "email": "gorm@example.com"}'
 ```
 
 ---
 
-## 🥒 Dominio: Rick and Morty
+## 🔍 Inspección y Debugging
 
-### 4. Buscar Personajes
-```bash
-curl "http://localhost:8080/api/rickandmorty/characters?name=rick&status=alive"
-```
-
-### 5. Obtener Personaje por ID
-```bash
-curl http://localhost:8080/api/rickandmorty/characters/1
-```
-
----
-
-## 📦 Dominio: Storage (S3)
-
-### 6. Listar Archivos
-```bash
-curl http://localhost:8080/api/storage/files
-```
-
-### 7. Subir Archivo
-```bash
-curl -X POST http://localhost:8080/api/storage/upload \
-  -F "file=@/ruta/a/tu/archivo.txt"
-```
-
----
-
-## 🔍 Inspección de Base de Datos (SQLite)
-
-A diferencia de Java/H2, no hay una consola web activa por defecto, pero puedes inspeccionar el archivo de base de datos directamente si usas `DATABASE_PATH`.
-
-Si usas `:memory:` (default), los datos se pierden al reiniciar. Para persistir localmente y debuguear:
-
-1. Levanta la app con un path:
-   ```bash
-   DATABASE_PATH=./demo.db air
-   ```
-2. Usa el CLI de sqlite3:
-   ```bash
-   sqlite3 ./demo.db "SELECT * FROM users;"
-   ```
-
-## ⚡ Logging Diferencial
-
-La aplicación incluye un middleware de logging que muestra cada request en la terminal donde corre `air`:
-
+### Logs de SQL
+La aplicación está configurada para imprimir todas las queries SQL que GORM ejecuta en la terminal. Verás algo como:
 ```text
-2026/04/15 21:10:00 INFO request method=GET path=/api/users status=200 duration=1.2ms
+[0.452ms] [rows:1] INSERT INTO "users" ("name","email",...) VALUES (...)
+```
+
+### Inspeccionar SQLite
+Si usas un archivo (default `demo.db`):
+```bash
+sqlite3 demo.db .tables
+sqlite3 demo.db "SELECT * FROM users;"
+```
+
+---
+
+## 🧪 Tests de Integración
+Para validar que todo el stack funciona sin levantar la app manualmente:
+```bash
+# Corre todos los tests levantando DBs en memoria y mocks de APIs externas
+go test ./... -v
 ```

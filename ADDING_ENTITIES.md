@@ -1,28 +1,28 @@
-# Guía: Cómo agregar una nueva Entidad (Go Clean Architecture)
+# Guía: Cómo agregar una nueva Entidad (con GORM)
 
-Sigue estos pasos para extender el proyecto con un nuevo dominio (ej. `Products`).
+Sigue estos pasos para extender el proyecto con un nuevo dominio usando la "magia" de GORM.
 
 ---
 
 ## 1. Definir Entidad de Dominio (`internal/products/product.go`)
 
-Define la estructura básica y errores de negocio.
+Usa `tags` para configurar el comportamiento del ORM.
 
 ```go
 package products
 
-import "errors"
+import "time"
 
 type Product struct {
-    ID          int64
-    Name        string
-    Price       float64
+    ID        int64     `gorm:"primaryKey"`
+    Name      string    `gorm:"not null"`
+    Price     float64   `gorm:"type:decimal(10,2)"`
+    CreatedAt time.Time `gorm:"autoCreateTime"`
+    UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
-
-var ErrProductNotFound = errors.New("product not found")
 ```
 
-## 2. Definir Puertos (Interfaces) (`internal/products/repository.go`)
+## 2. Definir Puerto (Repositorio) (`internal/products/repository.go`)
 
 ```go
 package products
@@ -31,76 +31,43 @@ import "context"
 
 type ProductRepository interface {
     Save(ctx context.Context, p Product) (Product, error)
-    FindByID(ctx context.Context, id int64) (*Product, error)
 }
 ```
 
-## 3. Implementar Adaptador (Infraestructura) (`infrastructure/postgres/product_repository.go`)
+## 3. Implementar Repo con GORM (`infrastructure/postgres/product_repository.go`)
 
 ```go
 package postgres
 
 import (
     "context"
-    "database/sql"
     "github.com/elosanz/demo/internal/products"
+    "gorm.io/gorm"
 )
 
-type ProductSQLiteRepository struct {
-    db *sql.DB
+type ProductGORMRepository struct {
+    db *gorm.DB
 }
 
-func NewProductSQLiteRepository(db *sql.DB) products.ProductRepository {
-    return &ProductSQLiteRepository{db: db}
-}
-
-func (r *ProductSQLiteRepository) Save(ctx context.Context, p products.Product) (products.Product, error) {
-    // Implementar ejecución SQL...
-}
-
-func (r *ProductSQLiteRepository) FindByID(ctx context.Context, id int64) (*products.Product, error) {
-    // Implementar ejecución SQL...
+func (r *ProductGORMRepository) Save(ctx context.Context, p products.Product) (products.Product, error) {
+    err := r.db.WithContext(ctx).Create(&p).Error
+    return p, err
 }
 ```
 
-## 4. Definir e Implementar Service (`internal/products/service.go`)
+## 4. Registrar en el Entrypoint (`cmd/api/main.go`)
+
+Simplemente agrega tu struct al `AutoMigrate` y GORM creará la tabla al arrancar:
 
 ```go
-package products
-
-import "context"
-
-type ProductService interface {
-    Create(ctx context.Context, name string, price float64) (Product, error)
-}
-
-type productService struct {
-    repo ProductRepository
-}
-
-func NewProductService(repo ProductRepository) ProductService {
-    return &productService{repo: repo}
-}
-
-func (s *productService) Create(ctx context.Context, name string, price float64) (Product, error) {
-    return s.repo.Save(ctx, Product{Name: name, Price: price})
-}
+db.AutoMigrate(&user.User{}, &products.Product{})
 ```
-
-## 5. Implementar Handler y DTOs (`internal/products/handler/`)
-
-Crea `dto.go` para los requests/responses y `handler.go` para la lógica HTTP usando `pkg/web`.
-
-## 6. Registrar en el Entrypoint (`cmd/api/main.go`)
-
-1. Agrega la migración SQL en `runMigrations`.
-2. Instancia Repository → Service → Handler.
-3. Registra la ruta: `mux.HandleFunc("POST /api/products", web.Adapt(productH.Create))`.
 
 ---
 
-## 💡 Tips Go vs Java
+## 🧪 Cómo testear (Test de Integración)
 
-- **No hay Annotations**: Todo es explícito (SQL, JSON tags).
-- **Interfaces en el Consumidor**: Las interfaces (`ProductRepository`) viven en la carpeta de dominio (`internal/products`), no con la implementación.
-- **Error Handling**: Siempre retorna `error` y úsalo con `errors.Is` en los handlers.
+Crea un archivo `handler_integration_test.go` en el paquete del handler:
+1. Usa `sqlite.Open(":memory:")` para una DB limpia.
+2. Llama a `db.AutoMigrate()`.
+3. Usa `httptest.NewRecorder()` para validar el flujo HTTP completo.

@@ -7,13 +7,13 @@ import (
 
 // User is the domain entity for a registered user.
 type User struct {
-	ID        int64
-	Name      string
-	Email     string
+	ID        int64     `gorm:"primaryKey"`
+	Name      string    `gorm:"not null"`
+	Email     string    `gorm:"uniqueIndex;not null"`
 	Phone     string
 	Website   string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
 // ErrNotFound is returned when a user cannot be found.
