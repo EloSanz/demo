@@ -1,50 +1,58 @@
 # Demo API (Go Port)
 
-This project is a Go port of an enterprise-grade Spring Boot application, maintaining Clean Architecture and DDD principles, now powered by **GORM**.
+This project is a high-performance, modular Go port of an enterprise Spring Boot application, following Clean Architecture and DDD principles.
 
 ## Features
 
-- **Users Domain**: CRUD operations with **GORM** persistence.
-- **Auto-Migrations**: Database schema managed automatically by GORM.
-- **Rick and Morty Integration**: Consume external API with filtering and pagination.
-- **External Sync**: Fetch users from JSONPlaceholder and upsert into local database.
-- **Storage Service**: AWS S3 integration for file upload/download/delete/list.
-- **Thin Web Wrapper**: Custom `pkg/web` following internal infrastructure conventions.
-- **Developer Experience**: Hot-reload with `air` and structured request logging.
-- **Testing**: Comprehensive Unit and **Integration Tests** (using `httptest` and in-memory SQLite).
+- **GORM Persistence**: Multi-DB support (PostgreSQL & SQLite) with automatic migrations.
+- **Observability**: Built-in Prometheus metrics at `/metrics` and structured logging.
+- **Resilience**: Graceful shutdown and global recovery middleware.
+- **Storage**: AWS S3 integration.
+- **Modular Design**: Decoupled database and routing initialization.
+- **Testing**: Full suite of unit and integration tests with HTTP mocking.
 
 ## Requirements
 
 - Go 1.25+
-- Docker (optional)
+- Docker & Docker Compose (optional for full stack run)
 
 ## Getting Started
 
-### 1. Environment Configuration
-
-- `PORT`: Server port (default: `8080`).
-- `DATABASE_PATH`: Path to SQLite file (default: `demo.db`).
-- `AWS_S3_BUCKET`: S3 Bucket name (default: `myawsbucketelito`).
-
-### 2. Run Local Development
+### 1. Fast Development (SQLite)
 
 ```bash
+# Uses default config (SQLite)
 air
+```
+
+### 2. Full Production Stack (Postgres)
+
+```bash
+docker-compose up -d
 ```
 
 ### 3. Running Tests
 
-Execute both unit and integration tests:
 ```bash
+# Run all tests (Unit + Integration)
 go test ./... -v
 ```
+
+## Infrastructure & Monitoring
+
+- **Health Check**: `GET /health` (Checks DB connectivity).
+- **Metrics**: `GET /metrics` (Prometheus format).
+- **Graceful Shutdown**: The server waits 20s for active requests before stopping.
 
 ## Project Structure
 
 ```text
-├── cmd/api/          # Application entrypoint (GORM Init & AutoMigrate)
-├── infrastructure/   # External adapters (GORM Repository, HTTP Clients, AWS)
-├── internal/         # Bounded Contexts (User, RickAndMorty, Storage)
-├── pkg/web/          # HTTP Infrastructure wrapper
-└── tests/            # Integration logic (within handler packages)
+├── cmd/api/          # Main entrypoint (Orchestration only)
+├── internal/
+│   ├── api/          # Routing Index & Middleware Assembly
+│   ├── database/     # DB Initialization & GORM Config
+│   ├── config/       # Structured Env Var Configuration
+│   └── [domain]/     # Bounded Contexts (Logic + Handlers + Tests)
+├── infrastructure/   # External Adapters (Repo, HTTP Clients, AWS)
+└── pkg/web/          # HTTP Utilities (JSON, Error handling, Metrics middleware)
 ```

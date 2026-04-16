@@ -1,42 +1,50 @@
 # Ejemplos de Uso de la API (Go Port)
 
-Esta guía muestra cómo interactuar con la API. Gracias a **GORM**, la base de datos se gestiona sola.
+Esta guía muestra cómo interactuar con los nuevos endpoints de infraestructura y observación.
 
 ---
 
-## 👤 Dominio: Usuarios
+## 📊 Observabilidad y Monitoreo
 
-### 1. Crear Usuario (Auditoría Automática)
-Al crear un usuario, GORM setea `created_at` y `updated_at` automáticamente.
+### 1. Métricas de Prometheus
+La aplicación expone métricas nativas para ser consumidas por un servidor de Prometheus.
 
 ```bash
-curl -X POST http://localhost:8080/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"name": "GORM User", "email": "gorm@example.com"}'
+curl http://localhost:8080/metrics
+```
+*Tip: Busca `http_requests_total` para ver cuántos hits recibió cada endpoint.*
+
+### 2. Health Check
+Verifica que la app esté viva y tenga conexión a la base de datos (Postgres o SQLite).
+
+```bash
+curl http://localhost:8080/health
 ```
 
 ---
 
-## 🔍 Inspección y Debugging
+## 🛡️ Pruebas de Resiliencia
 
-### Logs de SQL
-La aplicación está configurada para imprimir todas las queries SQL que GORM ejecuta en la terminal. Verás algo como:
-```text
-[0.452ms] [rows:1] INSERT INTO "users" ("name","email",...) VALUES (...)
-```
+### 1. Test de Graceful Shutdown
+Para verificar que el apagado no corta conexiones activas:
 
-### Inspeccionar SQLite
-Si usas un archivo (default `demo.db`):
-```bash
-sqlite3 demo.db .tables
-sqlite3 demo.db "SELECT * FROM users;"
-```
+1.  Llama al endpoint lento:
+    ```bash
+    curl http://localhost:8080/api/test/slow
+    ```
+2.  Apaga el servicio inmediatamente (ej: `docker-compose stop api`).
+3.  El `curl` debería terminar con éxito antes de que la app se cierre.
 
 ---
 
-## 🧪 Tests de Integración
-Para validar que todo el stack funciona sin levantar la app manualmente:
+## 🧪 Comandos de Testing
+
+### Suite completa
 ```bash
-# Corre todos los tests levantando DBs en memoria y mocks de APIs externas
 go test ./... -v
+```
+
+### Solo un paquete (sin cache)
+```bash
+go test -count=1 ./internal/user/handler/... -v
 ```
