@@ -3,19 +3,23 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/elosanz/demo/internal/notification"
+	"github.com/elosanz/demo/pkg/transaction"
 )
 
 // userService implements UserService.
 type userService struct {
 	repo           UserRepository
 	externalClient ExternalUserClient
+	notifSvc       notification.NotificationService
 }
 
-// NewUserService constructs a userService injecting the given repository and external client.
-func NewUserService(repo UserRepository, externalClient ExternalUserClient) UserService {
+// NewUserService constructs a userService injecting dependencies.
+func NewUserService(repo UserRepository, externalClient ExternalUserClient, notifSvc notification.NotificationService) UserService {
 	return &userService{
 		repo:           repo,
 		externalClient: externalClient,
+		notifSvc:       notifSvc,
 	}
 }
 
@@ -94,32 +98,48 @@ func (s *userService) FetchFromExternal(ctx context.Context) ([]User, error) {
 }
 
 func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (User, error) {
+	// 1. Fetch external data
 	external, err := s.externalClient.FetchByID(ctx, externalID)
-	if err != nil {
-		return User{}, fmt.Errorf("fetching external user %d: %w", externalID, err)
-	}
-	if external == nil {
-		return User{}, ErrNotFound
+	if err != nil || external == nil {
+		return User{}, fmt.Errorf("fetching external user: %w", err)
 	}
 
-	existing, err := s.repo.FindByEmail(ctx, external.Email)
-	if err != nil {
-		return User{}, fmt.Errorf("looking up local user by email: %w", err)
+	tx := transaction.NewHelper(2) // 2 reintentos para el rollback
+	var savedUser User
+
+	// 2. Define the Saga Actions
+	actions := []transaction.Action{
+		{
+			Name: "UpsertLocalUser",
+			Execute: func() error {
+				existing, _ := s.repo.FindByEmail(ctx, external.Email)
+				if existing != nil {
+					external.ID = existing.ID
+				}
+				savedUser, err = s.repo.Save(ctx, *external)
+				return err
+			},
+			Rollback: func() error {
+				// Si falló el paso siguiente, borramos el usuario creado
+				return s.repo.Delete(ctx, savedUser.ID)
+			},
+		},
+		{
+			Name: "SendWelcomeNotification",
+			Execute: func() error {
+				return s.notifSvc.Publish(ctx, notification.Notification{
+					Type:    "welcome_email",
+					Content: fmt.Sprintf("Welcome %s! Your account is synced.", savedUser.Name),
+				})
+			},
+			// No rollback needed for notification, but could be a cancel-mail if exists
+		},
 	}
 
-	if existing != nil {
-		external.ID = existing.ID
-		updated, err := s.repo.Update(ctx, *external)
-		if err != nil {
-			return User{}, fmt.Errorf("updating synced user: %w", err)
-		}
-		return updated, nil
+	// 3. Execute Saga
+	if err := tx.Execute(actions); err != nil {
+		return User{}, fmt.Errorf("sync transaction failed: %w", err)
 	}
 
-	external.ID = 0
-	saved, err := s.repo.Save(ctx, *external)
-	if err != nil {
-		return User{}, fmt.Errorf("saving synced user: %w", err)
-	}
-	return saved, nil
+	return savedUser, nil
 }

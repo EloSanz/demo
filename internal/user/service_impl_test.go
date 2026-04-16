@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/elosanz/demo/internal/notification"
 	"github.com/elosanz/demo/internal/user"
 	"github.com/stretchr/testify/require"
 )
@@ -108,6 +109,10 @@ func (f *fakeExternalUserClient) FetchByID(_ context.Context, id int64) (*user.U
 	return f.byID[id], nil
 }
 
+type fakeNotificationService struct{}
+func (f *fakeNotificationService) Publish(_ context.Context, _ notification.Notification) error { return nil }
+func (f *fakeNotificationService) StartWorker(_ context.Context) {}
+
 // ─── Factory ─────────────────────────────────────────────────────────────────
 
 type userServiceBuilder struct {
@@ -137,7 +142,7 @@ func (b *userServiceBuilder) withExternalUser(id int64, u user.User) *userServic
 }
 
 func (b *userServiceBuilder) build() user.UserService {
-	return user.NewUserService(b.repo, b.external)
+	return user.NewUserService(b.repo, b.external, &fakeNotificationService{})
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

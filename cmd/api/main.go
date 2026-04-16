@@ -87,7 +87,7 @@ func run() error {
 
 	// 4. Services
 	userRepo := infrapostgres.NewUserGORMRepository(db)
-	userSvc := user.NewUserService(userRepo, externalUserClient)
+	userSvc := user.NewUserService(userRepo, externalUserClient, notifSvc)
 	rmSvc := rickandmorty.NewRickAndMortyService(externalRMClient)
 
 	// 5. Router Index
