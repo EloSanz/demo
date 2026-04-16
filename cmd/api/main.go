@@ -88,6 +88,7 @@ func run() error {
 	// ─── Routing ─────────────────────────────────────────────────────────────
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", web.HealthHandler(sqlDB))
+	mux.Handle("GET /metrics", web.MetricsHandler())
 
 	mux.HandleFunc("GET /api/users", web.Adapt(userH.GetAll))
 	mux.HandleFunc("GET /api/users/external", web.Adapt(userH.FetchExternal))
@@ -118,7 +119,8 @@ func run() error {
 	})
 
 	// ─── Server Start ────────────────────────────────────────────────────────
-	handler := web.Recovery(web.RequestLogger(mux))
+	// Chain middlewares: Recovery -> Metrics -> Logger -> Mux
+	handler := web.Recovery(web.MetricsMiddleware(web.RequestLogger(mux)))
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
