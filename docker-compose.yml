@@ -11,9 +11,12 @@ services:
       - JSONPLACEHOLDER_BASE_URL=https://jsonplaceholder.typicode.com
       - RICKANDMORTY_BASE_URL=https://rickandmortyapi.com/api
       - AWS_S3_BUCKET=myawsbucketelito
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     depends_on:
       db:
         condition: service_healthy
+      elasticsearch:
+        condition: service_started
 
   db:
     image: postgres:16-alpine
@@ -30,6 +33,20 @@ services:
       retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:

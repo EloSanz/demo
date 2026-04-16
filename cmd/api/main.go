@@ -32,6 +32,8 @@ import (
 	"github.com/elosanz/demo/internal/rickandmorty"
 	"github.com/elosanz/demo/internal/storage"
 	"github.com/elosanz/demo/internal/user"
+	"github.com/elastic/go-elasticsearch/v8"
+	infraes "github.com/elosanz/demo/infrastructure/elasticsearch"
 
 	awsinfra "github.com/elosanz/demo/infrastructure/aws"
 	"github.com/elosanz/demo/infrastructure/httpclient"
@@ -85,9 +87,20 @@ func run() error {
 	}
 	notifSvc.StartWorker(ctx)
 
+	// --------------------------------------------------------------------------
+	// SEARCH ENGINE: Elasticsearch
+	// --------------------------------------------------------------------------
+	esClient, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{cfg.ElasticsearchURL},
+	})
+	if err != nil {
+		slog.Error("failed to create elasticsearch client", "error", err)
+	}
+	userSearchRepo := infraes.NewUserSearchRepository(esClient)
+
 	// 4. Services
 	userRepo := infrapostgres.NewUserGORMRepository(db)
-	userSvc := user.NewUserService(userRepo, externalUserClient, notifSvc)
+	userSvc := user.NewUserService(userRepo, userSearchRepo, externalUserClient, notifSvc)
 	rmSvc := rickandmorty.NewRickAndMortyService(externalRMClient)
 
 	// 5. Router Index

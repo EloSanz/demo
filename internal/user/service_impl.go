@@ -10,14 +10,21 @@ import (
 // userService implements UserService.
 type userService struct {
 	repo           UserRepository
+	searchRepo     UserSearchRepository
 	externalClient ExternalUserClient
 	notifSvc       notification.NotificationService
 }
 
 // NewUserService constructs a userService injecting dependencies.
-func NewUserService(repo UserRepository, externalClient ExternalUserClient, notifSvc notification.NotificationService) UserService {
+func NewUserService(
+	repo UserRepository,
+	searchRepo UserSearchRepository,
+	externalClient ExternalUserClient,
+	notifSvc notification.NotificationService,
+) UserService {
 	return &userService{
 		repo:           repo,
+		searchRepo:     searchRepo,
 		externalClient: externalClient,
 		notifSvc:       notifSvc,
 	}
@@ -104,35 +111,27 @@ func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (U
 		return User{}, fmt.Errorf("fetching external user: %w", err)
 	}
 
-	tx := transaction.NewHelper(2) // 2 reintentos para el rollback
+	tx := transaction.NewHelper(2)
 	var savedUser User
 
-	// 2. Define the Saga Actions
+	// 2. Define the Saga Actions (Orchestration)
 	actions := []transaction.Action{
 		{
-			Name: "UpsertLocalUser",
-			Execute: func() error {
-				existing, _ := s.repo.FindByEmail(ctx, external.Email)
-				if existing != nil {
-					external.ID = existing.ID
-				}
-				savedUser, err = s.repo.Save(ctx, *external)
+			Name:     "UpsertLocalUser",
+			Execute:  func() error { 
+				u, err := s.upsertLocalUser(ctx, *external)
+				savedUser = u
 				return err
 			},
-			Rollback: func() error {
-				// Si falló el paso siguiente, borramos el usuario creado
-				return s.repo.Delete(ctx, savedUser.ID)
-			},
+			Rollback: func() error { return s.repo.Delete(ctx, savedUser.ID) },
 		},
 		{
-			Name: "SendWelcomeNotification",
-			Execute: func() error {
-				return s.notifSvc.Publish(ctx, notification.Notification{
-					Type:    "welcome_email",
-					Content: fmt.Sprintf("Welcome %s! Your account is synced.", savedUser.Name),
-				})
-			},
-			// No rollback needed for notification, but could be a cancel-mail if exists
+			Name:    "IndexInSearchEngine",
+			Execute: func() error { return s.searchRepo.Index(ctx, savedUser) },
+		},
+		{
+			Name:    "SendWelcomeNotification",
+			Execute: func() error { return s.sendWelcomeNotification(ctx, savedUser) },
 		},
 	}
 
@@ -142,4 +141,25 @@ func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (U
 	}
 
 	return savedUser, nil
+}
+
+// ─── Transaction Step Helpers ──────────────────────────────────────────────
+
+func (s *userService) upsertLocalUser(ctx context.Context, external User) (User, error) {
+	existing, _ := s.repo.FindByEmail(ctx, external.Email)
+	if existing != nil {
+		external.ID = existing.ID
+	} else {
+		// IMPORTANTE: Si es un usuario nuevo, reseteamos el ID a 0 
+		// para que nuestra DB asigne uno nuevo y no choque con el de JSONPlaceholder.
+		external.ID = 0
+	}
+	return s.repo.Save(ctx, external)
+}
+
+func (s *userService) sendWelcomeNotification(ctx context.Context, u User) error {
+	return s.notifSvc.Publish(ctx, notification.Notification{
+		Type:    "welcome_email",
+		Content: fmt.Sprintf("Welcome %s! Your account is synced.", u.Name),
+	})
 }

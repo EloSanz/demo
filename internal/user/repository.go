@@ -13,6 +13,12 @@ type UserRepository interface {
 	Delete(ctx context.Context, id int64) error
 }
 
+// UserSearchRepository defines the contract for fuzzy searching users.
+type UserSearchRepository interface {
+	Index(ctx context.Context, u User) error
+	Search(ctx context.Context, query string) ([]User, error)
+}
+
 // ExternalUserClient is the port for fetching users from the JSONPlaceholder external API.
 type ExternalUserClient interface {
 	FetchAll(ctx context.Context) ([]User, error)

@@ -7,6 +7,8 @@ bin = ".air_tmp/api"
 include_ext = ["go"]
 exclude_dir = ["skills", ".air_tmp", "migrations"]
 delay = 500
+stop_on_error = true
+on_error = "osascript -e 'display notification \"Chequeá la terminal, hay errores de sintaxis.\" with title \"❌ Go Build Failed\"'"
 
 [log]
 time = true

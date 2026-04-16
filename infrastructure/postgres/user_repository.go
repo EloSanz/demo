@@ -74,9 +74,8 @@ func (r *UserGORMRepository) ExistsByEmail(ctx context.Context, email string) (b
 }
 
 func (r *UserGORMRepository) Save(ctx context.Context, u user.User) (user.User, error) {
-	// GORM handles ID generation (if 0) and timestamps (autoCreateTime/autoUpdateTime)
-	if err := r.db.WithContext(ctx).Create(&u).Error; err != nil {
-		return user.User{}, fmt.Errorf("inserting user: %w", err)
+	if err := r.db.WithContext(ctx).Save(&u).Error; err != nil {
+		return user.User{}, fmt.Errorf("persisting user: %w", err)
 	}
 	return u, nil
 }
