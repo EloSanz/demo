@@ -92,6 +92,20 @@ func (f *fakeUserRepository) Delete(_ context.Context, id int64) error {
 	return nil
 }
 
+func (f *fakeUserRepository) TransferPoints(_ context.Context, fromID, toID int64, amount int) error {
+	from, ok := f.users[fromID]
+	if !ok { return user.ErrNotFound }
+	to, ok := f.users[toID]
+	if !ok { return user.ErrNotFound }
+	if from.Points < amount { return user.ErrInsufficientPoints }
+	
+	from.Points -= amount
+	to.Points += amount
+	f.users[fromID] = from
+	f.users[toID] = to
+	return nil
+}
+
 type fakeExternalUserClient struct {
 	users  []user.User
 	byID   map[int64]*user.User
@@ -142,7 +156,7 @@ func (b *userServiceBuilder) withExternalUser(id int64, u user.User) *userServic
 }
 
 func (b *userServiceBuilder) build() user.UserService {
-	return user.NewUserService(b.repo, b.external, &fakeNotificationService{})
+	return user.NewUserService(b.repo, nil, b.external, &fakeNotificationService{})
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────

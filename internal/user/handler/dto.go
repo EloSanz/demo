@@ -12,6 +12,7 @@ type CreateUserRequest struct {
 	Email   string `json:"email"`
 	Phone   string `json:"phone"`
 	Website string `json:"website"`
+	Points  int    `json:"points"`
 }
 
 // UpdateUserRequest is the request body for updating a user.
@@ -20,6 +21,7 @@ type UpdateUserRequest struct {
 	Email   string `json:"email"`
 	Phone   string `json:"phone"`
 	Website string `json:"website"`
+	Points  int    `json:"points"`
 }
 
 // UserResponse is the API representation of a user.
@@ -29,6 +31,7 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 	Phone     string    `json:"phone"`
 	Website   string    `json:"website"`
+	Points    int       `json:"points"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -42,11 +45,11 @@ type PageResponse struct {
 }
 
 func (r CreateUserRequest) toDomain() user.User {
-	return user.User{Name: r.Name, Email: r.Email, Phone: r.Phone, Website: r.Website}
+	return user.User{Name: r.Name, Email: r.Email, Phone: r.Phone, Website: r.Website, Points: r.Points}
 }
 
 func (r UpdateUserRequest) toDomain() user.User {
-	return user.User{Name: r.Name, Email: r.Email, Phone: r.Phone, Website: r.Website}
+	return user.User{Name: r.Name, Email: r.Email, Phone: r.Phone, Website: r.Website, Points: r.Points}
 }
 
 func mapToResponse(u user.User) UserResponse {
@@ -56,6 +59,7 @@ func mapToResponse(u user.User) UserResponse {
 		Email:     u.Email,
 		Phone:     u.Phone,
 		Website:   u.Website,
+		Points:    u.Points,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}

@@ -229,6 +229,49 @@ func (h *UserHandler) SyncExternal(w http.ResponseWriter, r *http.Request) error
 	return web.EncodeJSON(w, mapToResponse(synced), http.StatusCreated)
 }
 
+// TransferRequest defines the input for point transfers.
+type TransferRequest struct {
+	FromID int64 `json:"from_id"`
+	ToID   int64 `json:"to_id"`
+	Amount int   `json:"amount"`
+}
+
+// TransferPoints moves points between users.
+// @Summary Transfer points
+// @Description move points from one user to another atomically
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param transfer body TransferRequest true "Transfer details"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /api/users/transfer [post]
+func (h *UserHandler) TransferPoints(w http.ResponseWriter, r *http.Request) error {
+	var req TransferRequest
+	if err := web.DecodeJSON(r, &req); err != nil {
+		return err
+	}
+
+	if req.Amount <= 0 {
+		return web.NewError(http.StatusBadRequest, "amount must be positive")
+	}
+
+	err := h.service.Transfer(r.Context(), req.FromID, req.ToID, req.Amount)
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotFound):
+			return web.NewError(http.StatusNotFound, "one or both users not found")
+		case errors.Is(err, user.ErrInsufficientPoints):
+			return web.NewError(http.StatusBadRequest, err.Error())
+		default:
+			slog.ErrorContext(r.Context(), "unexpected error in transfer", "error", err)
+			return web.NewError(http.StatusInternalServerError, "internal server error")
+		}
+	}
+
+	return web.EncodeJSON(w, map[string]string{"message": "transfer successful"}, http.StatusOK)
+}
+
 // queryInt extracts an integer query parameter, returning defaultVal if absent or invalid.
 func queryInt(r *http.Request, name string, defaultVal int) int {
 	raw := r.URL.Query().Get(name)

@@ -8,6 +8,8 @@ definitions:
         type: string
       phone:
         type: string
+      points:
+        type: integer
       website:
         type: string
     type: object
@@ -31,6 +33,15 @@ definitions:
       type:
         type: string
     type: object
+  handler.TransferRequest:
+    properties:
+      amount:
+        type: integer
+      from_id:
+        type: integer
+      to_id:
+        type: integer
+    type: object
   handler.UpdateUserRequest:
     properties:
       email:
@@ -39,6 +50,8 @@ definitions:
         type: string
       phone:
         type: string
+      points:
+        type: integer
       website:
         type: string
     type: object
@@ -54,6 +67,8 @@ definitions:
         type: string
       phone:
         type: string
+      points:
+        type: integer
       updated_at:
         type: string
       website:
@@ -71,6 +86,8 @@ definitions:
         type: string
       phone:
         type: string
+      points:
+        type: integer
       updatedAt:
         type: string
       website:
@@ -263,6 +280,36 @@ paths:
               type: string
             type: object
       summary: Sync external user
+      tags:
+      - users
+  /api/users/transfer:
+    post:
+      consumes:
+      - application/json
+      description: move points from one user to another atomically
+      parameters:
+      - description: Transfer details
+        in: body
+        name: transfer
+        required: true
+        schema:
+          $ref: '#/definitions/handler.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Transfer points
       tags:
       - users
 swagger: "2.0"

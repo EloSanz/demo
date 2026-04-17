@@ -174,6 +174,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/users/transfer": {
+            "post": {
+                "description": "move points from one user to another atomically",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Transfer points",
+                "parameters": [
+                    {
+                        "description": "Transfer details",
+                        "name": "transfer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/users/{id}": {
             "get": {
                 "description": "get user by ID",
@@ -304,6 +350,9 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "points": {
+                    "type": "integer"
+                },
                 "website": {
                     "type": "string"
                 }
@@ -340,6 +389,20 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.TransferRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "from_id": {
+                    "type": "integer"
+                },
+                "to_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "handler.UpdateUserRequest": {
             "type": "object",
             "properties": {
@@ -351,6 +414,9 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                },
+                "points": {
+                    "type": "integer"
                 },
                 "website": {
                     "type": "string"
@@ -374,6 +440,9 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                },
+                "points": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -400,6 +469,9 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                },
+                "points": {
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"

@@ -20,6 +20,7 @@ func (m *mockRepo) Save(ctx context.Context, u user.User) (user.User, error) { a
 func (m *mockRepo) Update(ctx context.Context, u user.User) (user.User, error) { args := m.Called(ctx, u); return args.Get(0).(user.User), args.Error(1) }
 func (m *mockRepo) Delete(ctx context.Context, id int64) error { args := m.Called(ctx, id); return args.Error(0) }
 func (m *mockRepo) ExistsByEmail(ctx context.Context, email string) (bool, error) { args := m.Called(ctx, email); return args.Bool(0), args.Error(1) }
+func (m *mockRepo) TransferPoints(ctx context.Context, fromID, toID int64, amount int) error { args := m.Called(ctx, fromID, toID, amount); return args.Error(0) }
 
 type mockExternal struct{ mock.Mock }
 func (m *mockExternal) FetchByID(ctx context.Context, id int64) (*user.User, error) { args := m.Called(ctx, id); if args.Get(0) == nil { return nil, args.Error(1) }; return args.Get(0).(*user.User), args.Error(1) }
@@ -34,7 +35,7 @@ func TestUserService_SyncFromExternal_RollbackOnNotificationFailure(t *testing.T
 	repo := new(mockRepo)
 	external := new(mockExternal)
 	notif := new(mockNotif)
-	svc := user.NewUserService(repo, external, notif)
+	svc := user.NewUserService(repo, nil, external, notif)
 
 	ctx := context.Background()
 	externalUser := &user.User{ID: 0, Name: "Test User", Email: "test@example.com"}

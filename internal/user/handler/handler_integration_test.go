@@ -34,7 +34,7 @@ func setupUserIntegration(t *testing.T) (*handler.UserHandler, *gorm.DB, *httpte
 
 	repo := postgres.NewUserGORMRepository(db)
 	client := httpclient.NewJSONPlaceholderClient(mockExternal.URL, http.DefaultClient)
-	svc := user.NewUserService(repo, client)
+	svc := user.NewUserService(repo, nil, client, nil)
 
 	return handler.NewUserHandler(svc), db, mockExternal
 }

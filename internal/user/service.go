@@ -17,4 +17,6 @@ type UserService interface {
 	// SyncFromExternal fetches a user from JSONPlaceholder and upserts them locally.
 	// Returns ErrNotFound when the external user does not exist.
 	SyncFromExternal(ctx context.Context, externalID int64) (User, error)
+	// Transfer moves points between two users atomically.
+	Transfer(ctx context.Context, fromID, toID int64, amount int) error
 }

@@ -87,6 +87,7 @@ func (r *UserGORMRepository) Update(ctx context.Context, u user.User) (user.User
 		Email:   u.Email,
 		Phone:   u.Phone,
 		Website: u.Website,
+		Points:  u.Points,
 	})
 	if result.Error != nil {
 		return user.User{}, fmt.Errorf("updating user %d: %w", u.ID, result.Error)
@@ -109,4 +110,44 @@ func (r *UserGORMRepository) Delete(ctx context.Context, id int64) error {
 		return user.ErrNotFound
 	}
 	return nil
+}
+
+func (r *UserGORMRepository) TransferPoints(ctx context.Context, fromID, toID int64, amount int) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var fromUser, toUser user.User
+
+		// 1. Obtener y validar Usuario A (el que envía)
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&fromUser, fromID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return user.ErrNotFound
+			}
+			return err
+		}
+
+		if fromUser.Points < amount {
+			return user.ErrInsufficientPoints
+		}
+
+		// 2. Obtener Usuario B (el que recibe)
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&toUser, toID).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return user.ErrNotFound
+			}
+			return err
+		}
+
+		// 3. Ejecutar cambios
+		fromUser.Points -= amount
+		toUser.Points += amount
+
+		if err := tx.Save(&fromUser).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Save(&toUser).Error; err != nil {
+			return err
+		}
+
+		return nil // Si llegamos acá, GORM hace COMMIT automáticamente
+	})
 }

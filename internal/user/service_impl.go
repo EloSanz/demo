@@ -107,8 +107,11 @@ func (s *userService) FetchFromExternal(ctx context.Context) ([]User, error) {
 func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (User, error) {
 	// 1. Fetch external data
 	external, err := s.externalClient.FetchByID(ctx, externalID)
-	if err != nil || external == nil {
+	if err != nil {
 		return User{}, fmt.Errorf("fetching external user: %w", err)
+	}
+	if external == nil {
+		return User{}, ErrNotFound
 	}
 
 	tx := transaction.NewHelper(2)
@@ -126,12 +129,22 @@ func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (U
 			Rollback: func() error { return s.repo.Delete(ctx, savedUser.ID) },
 		},
 		{
-			Name:    "IndexInSearchEngine",
-			Execute: func() error { return s.searchRepo.Index(ctx, savedUser) },
+			Name: "IndexInSearchEngine",
+			Execute: func() error {
+				if s.searchRepo != nil {
+					return s.searchRepo.Index(ctx, savedUser)
+				}
+				return nil
+			},
 		},
 		{
-			Name:    "SendWelcomeNotification",
-			Execute: func() error { return s.sendWelcomeNotification(ctx, savedUser) },
+			Name: "SendWelcomeNotification",
+			Execute: func() error {
+				if s.notifSvc != nil {
+					return s.sendWelcomeNotification(ctx, savedUser)
+				}
+				return nil
+			},
 		},
 	}
 
@@ -162,4 +175,8 @@ func (s *userService) sendWelcomeNotification(ctx context.Context, u User) error
 		Type:    "welcome_email",
 		Content: fmt.Sprintf("Welcome %s! Your account is synced.", u.Name),
 	})
+}
+
+func (s *userService) Transfer(ctx context.Context, fromID, toID int64, amount int) error {
+	return s.repo.TransferPoints(ctx, fromID, toID, amount)
 }

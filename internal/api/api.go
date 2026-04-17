@@ -48,6 +48,7 @@ func NewHandler(
 	mux.HandleFunc("GET /api/users", web.Adapt(userH.GetAll))
 	mux.HandleFunc("GET /api/users/external", web.Adapt(userH.FetchExternal))
 	mux.HandleFunc("POST /api/users/sync/{externalID}", web.Adapt(userH.SyncExternal))
+	mux.HandleFunc("POST /api/users/transfer", web.Adapt(userH.TransferPoints))
 	mux.HandleFunc("GET /api/users/{id}", web.Adapt(userH.GetByID))
 	mux.HandleFunc("POST /api/users", web.Adapt(userH.Create))
 	mux.HandleFunc("PUT /api/users/{id}", web.Adapt(userH.Update))

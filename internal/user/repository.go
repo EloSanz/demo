@@ -11,6 +11,7 @@ type UserRepository interface {
 	Save(ctx context.Context, u User) (User, error)
 	Update(ctx context.Context, u User) (User, error)
 	Delete(ctx context.Context, id int64) error
+	TransferPoints(ctx context.Context, fromID, toID int64, amount int) error
 }
 
 // UserSearchRepository defines the contract for fuzzy searching users.
