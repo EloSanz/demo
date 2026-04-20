@@ -25,6 +25,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8"
+	infraes "github.com/elosanz/demo/infrastructure/elasticsearch"
 	"github.com/elosanz/demo/internal/api"
 	"github.com/elosanz/demo/internal/config"
 	"github.com/elosanz/demo/internal/database"
@@ -32,8 +34,6 @@ import (
 	"github.com/elosanz/demo/internal/rickandmorty"
 	"github.com/elosanz/demo/internal/storage"
 	"github.com/elosanz/demo/internal/user"
-	"github.com/elastic/go-elasticsearch/v8"
-	infraes "github.com/elosanz/demo/infrastructure/elasticsearch"
 
 	awsinfra "github.com/elosanz/demo/infrastructure/aws"
 	"github.com/elosanz/demo/infrastructure/httpclient"

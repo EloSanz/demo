@@ -11,8 +11,8 @@ import (
 	"github.com/elosanz/demo/infrastructure/postgres"
 	"github.com/elosanz/demo/internal/user"
 	"github.com/elosanz/demo/internal/user/handler"
-	"github.com/stretchr/testify/require"
 	"github.com/glebarez/sqlite"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 

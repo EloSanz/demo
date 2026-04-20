@@ -53,8 +53,8 @@ func (r *userSearchRepository) Search(ctx context.Context, query string) ([]user
 	searchQuery := map[string]interface{}{
 		"query": map[string]interface{}{
 			"multi_match": map[string]interface{}{
-				"query":  query,
-				"fields": []string{"name", "email", "phone"},
+				"query":     query,
+				"fields":    []string{"name", "email", "phone"},
 				"fuzziness": "AUTO",
 			},
 		},

@@ -62,7 +62,7 @@ func (s *sqsNotificationService) StartWorker(ctx context.Context) {
 
 				if err != nil {
 					slog.Error("error receiving SQS message (Queue dummy or unreachable)", "error", err)
-					
+
 					// IMPROVED: Context-aware sleep. This allows immediate shutdown.
 					select {
 					case <-ctx.Done():

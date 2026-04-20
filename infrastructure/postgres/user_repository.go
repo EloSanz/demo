@@ -95,7 +95,7 @@ func (r *UserGORMRepository) Update(ctx context.Context, u user.User) (user.User
 	if result.RowsAffected == 0 {
 		return user.User{}, user.ErrNotFound
 	}
-	
+
 	// Reload to get updated timestamps and all fields
 	err := r.db.WithContext(ctx).First(&u, u.ID).Error
 	return u, err

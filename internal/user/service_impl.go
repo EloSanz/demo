@@ -120,8 +120,8 @@ func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (U
 	// 2. Define the Saga Actions (Orchestration)
 	actions := []transaction.Action{
 		{
-			Name:     "UpsertLocalUser",
-			Execute:  func() error { 
+			Name: "UpsertLocalUser",
+			Execute: func() error {
 				u, err := s.upsertLocalUser(ctx, *external)
 				savedUser = u
 				return err
@@ -163,7 +163,7 @@ func (s *userService) upsertLocalUser(ctx context.Context, external User) (User,
 	if existing != nil {
 		external.ID = existing.ID
 	} else {
-		// IMPORTANTE: Si es un usuario nuevo, reseteamos el ID a 0 
+		// IMPORTANTE: Si es un usuario nuevo, reseteamos el ID a 0
 		// para que nuestra DB asigne uno nuevo y no choque con el de JSONPlaceholder.
 		external.ID = 0
 	}

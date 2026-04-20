@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	_ "github.com/elosanz/demo/docs"
 	"github.com/elosanz/demo/internal/notification"
 	notificationhandler "github.com/elosanz/demo/internal/notification/handler"
 	"github.com/elosanz/demo/internal/rickandmorty"
@@ -15,7 +16,6 @@ import (
 	userhandler "github.com/elosanz/demo/internal/user/handler"
 	"github.com/elosanz/demo/pkg/web"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
-	_ "github.com/elosanz/demo/docs"
 	"gorm.io/gorm"
 )
 
@@ -28,9 +28,9 @@ func NewHandler(
 	notifSvc notification.NotificationService,
 ) http.Handler {
 	mux := http.NewServeMux()
-	
+
 	sqlDB, _ := db.DB()
-	
+
 	// Handlers
 	userH := userhandler.NewUserHandler(userSvc)
 	rmH := rickandmortyhandler.NewRickAndMortyHandler(rmSvc)

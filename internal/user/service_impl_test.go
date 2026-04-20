@@ -14,9 +14,9 @@ var ctx = context.Background()
 // ─── Fakes ───────────────────────────────────────────────────────────────────
 
 type fakeUserRepository struct {
-	users       map[int64]user.User
-	nextID      int64
-	emailIndex  map[string]int64
+	users      map[int64]user.User
+	nextID     int64
+	emailIndex map[string]int64
 }
 
 func newFakeUserRepository() *fakeUserRepository {
@@ -94,11 +94,17 @@ func (f *fakeUserRepository) Delete(_ context.Context, id int64) error {
 
 func (f *fakeUserRepository) TransferPoints(_ context.Context, fromID, toID int64, amount int) error {
 	from, ok := f.users[fromID]
-	if !ok { return user.ErrNotFound }
+	if !ok {
+		return user.ErrNotFound
+	}
 	to, ok := f.users[toID]
-	if !ok { return user.ErrNotFound }
-	if from.Points < amount { return user.ErrInsufficientPoints }
-	
+	if !ok {
+		return user.ErrNotFound
+	}
+	if from.Points < amount {
+		return user.ErrInsufficientPoints
+	}
+
 	from.Points -= amount
 	to.Points += amount
 	f.users[fromID] = from
@@ -107,8 +113,8 @@ func (f *fakeUserRepository) TransferPoints(_ context.Context, fromID, toID int6
 }
 
 type fakeExternalUserClient struct {
-	users  []user.User
-	byID   map[int64]*user.User
+	users []user.User
+	byID  map[int64]*user.User
 }
 
 func newFakeExternalUserClient() *fakeExternalUserClient {
@@ -124,7 +130,10 @@ func (f *fakeExternalUserClient) FetchByID(_ context.Context, id int64) (*user.U
 }
 
 type fakeNotificationService struct{}
-func (f *fakeNotificationService) Publish(_ context.Context, _ notification.Notification) error { return nil }
+
+func (f *fakeNotificationService) Publish(_ context.Context, _ notification.Notification) error {
+	return nil
+}
 func (f *fakeNotificationService) StartWorker(_ context.Context) {}
 
 // ─── Factory ─────────────────────────────────────────────────────────────────

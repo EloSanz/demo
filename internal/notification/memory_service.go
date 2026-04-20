@@ -42,10 +42,10 @@ func (s *memoryNotificationService) StartWorker(ctx context.Context) {
 			case n := <-s.queue:
 				// Procesamos la notificación
 				slog.Info("WORKER: processing notification from memory", "type", n.Type, "content", n.Content)
-				
+
 				// Simulamos trabajo
 				time.Sleep(2 * time.Second)
-				
+
 				slog.Info("WORKER: notification processed successfully")
 			}
 		}
