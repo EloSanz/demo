@@ -1,5 +1,3 @@
-// Package web provides thin wrappers over net/http for JSON encoding/decoding
-// and structured error responses, mirroring fury_go-core/pkg/web conventions.
 package web
 
 import (
@@ -20,13 +18,10 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("status %d: %s", e.StatusCode, e.Message)
 }
 
-// NewError creates an HTTP error with the given status code and message.
 func NewError(statusCode int, message string) error {
 	return &Error{StatusCode: statusCode, Message: message}
 }
 
-// DecodeJSON decodes the JSON body of r into dst.
-// Returns a 400 error on malformed JSON; propagate the error directly.
 func DecodeJSON(r *http.Request, dst any) error {
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
@@ -36,8 +31,6 @@ func DecodeJSON(r *http.Request, dst any) error {
 	return nil
 }
 
-// EncodeJSON serialises payload as JSON and writes it with the given status code.
-// A nil payload with 201/204 is valid.
 func EncodeJSON(w http.ResponseWriter, payload any, statusCode int) error {
 	if payload == nil {
 		w.WriteHeader(statusCode)

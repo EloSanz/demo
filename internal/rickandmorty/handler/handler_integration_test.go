@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupRMIntegration(t *testing.T) (*handler.RickAndMortyHandler, *httptest.Server) {
+func setupRMIntegration(_ *testing.T) (*handler.RickAndMortyHandler, *httptest.Server) {
 	// 1. Mock Server para Rick and Morty API
 	mockAPI := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		// Mock single character
 		if r.URL.Path == "/character/1" {
 			json.NewEncoder(w).Encode(map[string]any{
@@ -35,7 +35,7 @@ func setupRMIntegration(t *testing.T) (*handler.RickAndMortyHandler, *httptest.S
 			})
 			return
 		}
-		
+
 		w.WriteHeader(http.StatusNotFound)
 	}))
 

@@ -34,21 +34,17 @@ func MetricsHandler() http.Handler {
 	return promhttp.Handler()
 }
 
-// MetricsMiddleware tracks status code, duration and request count.
 func MetricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		
-		// Usamos el responseWriter que ya tenías en middleware.go para capturar el status
+
 		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
-		
+
 		next.ServeHTTP(rw, r)
-		
+
 		duration := time.Since(start).Seconds()
 		status := strconv.Itoa(rw.status)
-		
-		// Registramos las métricas
-		// Nota: En producción, idealmente "path" debería estar sanitizado para evitar explosión de cardinalidad
+
 		httpRequestsTotal.WithLabelValues(r.Method, r.URL.Path, status).Inc()
 		httpRequestDuration.WithLabelValues(r.Method, r.URL.Path).Observe(duration)
 	})
