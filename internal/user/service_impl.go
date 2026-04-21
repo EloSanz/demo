@@ -3,8 +3,11 @@ package user
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/elosanz/demo/internal/notification"
 	"github.com/elosanz/demo/pkg/transaction"
+	"github.com/sony/gobreaker"
 )
 
 // userService implements UserService.
@@ -13,6 +16,7 @@ type userService struct {
 	searchRepo     UserSearchRepository
 	externalClient ExternalUserClient
 	notifSvc       notification.NotificationService
+	cb             *gobreaker.CircuitBreaker
 }
 
 // NewUserService constructs a userService injecting dependencies.
@@ -22,11 +26,20 @@ func NewUserService(
 	externalClient ExternalUserClient,
 	notifSvc notification.NotificationService,
 ) UserService {
+	var st gobreaker.Settings
+	st.Name = "external-user-client"
+	st.MaxRequests = 1            // Number of requests allowed to pass through when the state is half-open
+	st.Timeout = 10 * time.Second // Duration before moving from open to half-open
+	st.ReadyToTrip = func(counts gobreaker.Counts) bool {
+		return counts.ConsecutiveFailures >= 3
+	}
+
 	return &userService{
 		repo:           repo,
 		searchRepo:     searchRepo,
 		externalClient: externalClient,
 		notifSvc:       notifSvc,
+		cb:             gobreaker.NewCircuitBreaker(st),
 	}
 }
 
@@ -97,19 +110,31 @@ func (s *userService) Delete(ctx context.Context, id int64) error {
 }
 
 func (s *userService) FetchFromExternal(ctx context.Context) ([]User, error) {
-	users, err := s.externalClient.FetchAll(ctx)
+	result, err := s.cb.Execute(func() (interface{}, error) {
+		return s.externalClient.FetchAll(ctx)
+	})
 	if err != nil {
+		if err == gobreaker.ErrOpenState {
+			return nil, fmt.Errorf("external user api is temporarily unavailable: %w", err)
+		}
 		return nil, fmt.Errorf("fetching external users: %w", err)
 	}
-	return users, nil
+	return result.([]User), nil
 }
 
 func (s *userService) SyncFromExternal(ctx context.Context, externalID int64) (User, error) {
 	// 1. Fetch external data
-	external, err := s.externalClient.FetchByID(ctx, externalID)
+	result, err := s.cb.Execute(func() (interface{}, error) {
+		return s.externalClient.FetchByID(ctx, externalID)
+	})
 	if err != nil {
+		if err == gobreaker.ErrOpenState {
+			return User{}, fmt.Errorf("external user api is temporarily unavailable: %w", err)
+		}
 		return User{}, fmt.Errorf("fetching external user: %w", err)
 	}
+
+	external := result.(*User)
 	if external == nil {
 		return User{}, ErrNotFound
 	}

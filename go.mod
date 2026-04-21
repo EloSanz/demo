@@ -11,6 +11,7 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.19.4
 	github.com/glebarez/sqlite v1.11.0
 	github.com/prometheus/client_golang v1.23.2
+	github.com/sony/gobreaker v1.0.0
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.4
