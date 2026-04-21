@@ -44,3 +44,4 @@ jobs:
         with:
           version: v1.60.3
           args: --timeout 5m
+          cache: false
