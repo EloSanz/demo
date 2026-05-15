@@ -50,9 +50,9 @@ func (r *userSearchRepository) Index(ctx context.Context, u user.User) error {
 
 func (r *userSearchRepository) Search(ctx context.Context, query string) ([]user.User, error) {
 	var buf bytes.Buffer
-	searchQuery := map[string]interface{}{
-		"query": map[string]interface{}{
-			"multi_match": map[string]interface{}{
+	searchQuery := map[string]any{
+		"query": map[string]any{
+			"multi_match": map[string]any{
 				"query":     query,
 				"fields":    []string{"name", "email", "phone"},
 				"fuzziness": "AUTO",
