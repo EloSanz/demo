@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Testing & Coverage
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Virtual environments
+.venv
+
+# IDE and OS files
+.idea/
+.DS_Store
+
+# Replicas & temp folders
+replica_project/
+replica_desktop/

@@ -1,0 +1,20 @@
+[run]
+# Exclude files/directories that do not contain execution logic
+omit =
+    src/postback/ports/*
+    src/core/*
+    src/postback/exceptions.py
+    src/postback/schemas.py
+    */*/handlers.py
+
+[report]
+# Regex patterns of lines to ignore in calculations
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    
+    # Ignore abstract class / protocol definitions (Ports)
+    class .*\bProtocol\b\):
+    \.\.\.

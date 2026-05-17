@@ -1,0 +1,30 @@
+[project]
+name = "practice"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.136.1",
+    "loguru>=0.7.3",
+    "prometheus-client>=0.25.0",
+    "prometheus-fastapi-instrumentator>=6.1.0",
+    "pydantic>=2.13.4",
+    "starlette>=1.0.0",
+    "structlog>=25.5.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "taskipy>=1.14.1",
+]
+
+[tool.taskipy.tasks]
+test = "PYTHONPATH=. pytest"
+cov = "PYTHONPATH=. pytest --cov=src --cov-report=term-missing"
+cov-html = "PYTHONPATH=. pytest --cov=src --cov-report=html"
+dev = "fastapi dev main.py"
+prod = "ENVIRONMENT=production fastapi run main.py"
+
