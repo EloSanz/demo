@@ -47,8 +47,13 @@ def test_postback_android_deterministic_success(client):
     data = response.json()
     assert data["status"] == "success"
     assert data["transaction_id"] == "tx_andr_det_1"
-    assert data["attribution_type"] == "probabilistic"
+    assert data["attribution_type"] == "deterministic"
     assert data["internal_status"] == "attributed"
+
+
+
+
+
 
 def test_postback_android_missing_device_id_fails(client):
     # Android without device_id -> Raises AndroidMissingIDError (400 Bad Request)

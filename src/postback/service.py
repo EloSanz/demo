@@ -1,10 +1,13 @@
+from src.postback.handlers import logger
 from src.postback.ports.queue_port import QueuePort
 from src.postback.ports.transaction_repository_port import TransactionRepositoryPort
 from src.postback.schemas import (
     ConversionPostbackDTO,
     ConversionResponseDTO,
     OSEnum,
-    AttributionTypeEnum
+    AttributionTypeEnum,
+    EACEventPayload,
+    EACEventResponseDTO,
 )
 
 
@@ -19,7 +22,7 @@ class ConversionService:
         try:
             #sleep(3)
             if postback.os == OSEnum.android:
-                attribution_type = AttributionTypeEnum.probabilistic
+                attribution_type = AttributionTypeEnum.deterministic
                 internal_status = "attributed"
             else:
                 if postback.device_id is None:
@@ -47,4 +50,20 @@ class ConversionService:
                 "transaction_id": transaction_id,
                 "type": attribution_type
             }
+        )
+
+
+class AttributionService:
+    async def process_eac_event(self, event: EACEventPayload) -> EACEventResponseDTO:
+        logger.info("process_eac_event", event_id=event.event_id)
+
+        if event.device_id and event.device_id.strip() != "":
+            attribution_method = "deterministic"
+        else:
+            attribution_method = "probabilistic"
+
+        return EACEventResponseDTO(
+            event_id=event.event_id,
+            status="accepted",
+            attribution_method=attribution_method
         )

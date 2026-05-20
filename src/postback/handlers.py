@@ -3,7 +3,13 @@ from fastapi import FastAPI, Request
 from starlette import status
 from starlette.responses import JSONResponse
 
-from src.postback.exceptions import AndroidMissingIDError, CampaignMissingIDError, DuplicateTransactionError
+from src.postback.exceptions import (
+    AndroidMissingIDError,
+    CampaignMissingIDError,
+    DuplicateTransactionError,
+    AndroidDeviceIDMissingError,
+    iOSAttributionDataMissingError,
+)
 
 logger = structlog.get_logger()
 
@@ -42,3 +48,24 @@ def setup_postback_exception_handlers(app: FastAPI):
                 "message": "campaign id must be provided."
             }
         )
+
+    @app.exception_handler(AndroidDeviceIDMissingError)
+    async def eac_android_device_id_missing_handler(_: Request, exc: AndroidDeviceIDMissingError):
+        logger.warning("eac_android_device_id_missing")
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "detail": "device_id is required for Android deterministic matching."
+            }
+        )
+
+    @app.exception_handler(iOSAttributionDataMissingError)
+    async def eac_ios_attribution_data_missing_handler(_: Request, exc: iOSAttributionDataMissingError):
+        logger.warning("eac_ios_attribution_data_missing")
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "detail": "ip_address and user_agent are required for iOS probabilistic matching when device_id is missing."
+            }
+        )
+

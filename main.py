@@ -6,9 +6,9 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.core.logging.setup import setup_logging
-from src.core.middleware.logging import logging_middleware
+from src.core.middleware.logging import logging_middleware, logger
 from src.postback.handlers import setup_postback_exception_handlers
-from src.postback.router import postback_router
+from src.postback.router import postback_router, eac_router
 
 is_dev = os.getenv("ENVIRONMENT", "development") != "production"
 setup_logging(is_dev=is_dev)
@@ -33,7 +33,11 @@ setup_postback_exception_handlers(app)
 
 # Include Routers
 app.include_router(postback_router)
+app.include_router(eac_router)
 
 @app.get("/test")
-async def test() -> str:
-    return 'test'
+def test_endpoint():
+    return "test"
+
+
+

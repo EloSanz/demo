@@ -6,7 +6,8 @@ from src.postback.ports.queue_port import QueuePort
 # from src.infrastructure.queue.gcp_pubsub import GCPPubSub
 from src.postback.ports.transaction_repository_port import TransactionRepositoryPort
 from src.infrastructure.repository.in_memory_transaction_repository import InMemoryTransactionRepository
-from src.postback.service import ConversionService
+from src.postback.service import ConversionService, AttributionService
+
 
 def get_queue() -> QueuePort:
     # return MockQueue()
@@ -23,3 +24,6 @@ def get_conversion_service(
     transaction_repo: TransactionRepositoryPort = Depends(get_transaction_repo)
 ) -> ConversionService:
     return ConversionService(queue=queue, transaction_repo=transaction_repo)
+
+def get_attribution_service() -> AttributionService:
+    return AttributionService()
