@@ -38,6 +38,3 @@ app.include_router(eac_router)
 @app.get("/test")
 def test_endpoint():
     return "test"
-
-
-

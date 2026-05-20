@@ -8,7 +8,14 @@ from src.postback.exceptions import (
     AndroidDeviceIDMissingError,
     iOSAttributionDataMissingError,
 )
-
+from src.postback.domain.models import (
+    Conversion,
+    AttributionResult,
+    EACEvent,
+    EACEventResult,
+    OSDomainEnum,
+    AttributionDomainEnum,
+)
 
 
 class OSEnum(str, Enum):
@@ -40,11 +47,29 @@ class ConversionPostbackDTO(BaseModel):
 
         return self
 
+    def to_domain(self) -> Conversion:
+        return Conversion(
+            transaction_id=self.transaction_id,
+            campaign_id=self.campaign_id or "",
+            device_id=self.device_id,
+            os=OSDomainEnum(self.os.value),
+            revenue=self.revenue
+        )
+
 class ConversionResponseDTO(BaseModel):
     status: str
     transaction_id: str
     attribution_type: AttributionTypeEnum
     internal_status: str
+
+    @classmethod
+    def from_domain(cls, result: AttributionResult) -> "ConversionResponseDTO":
+        return cls(
+            status=result.status,
+            transaction_id=result.transaction_id,
+            attribution_type=AttributionTypeEnum(result.attribution_type.value),
+            internal_status=result.internal_status
+        )
 
 class EACEventPayload(BaseModel):
     event_id: str = Field(min_length=1)
@@ -67,7 +92,26 @@ class EACEventPayload(BaseModel):
                     raise iOSAttributionDataMissingError()
         return self
 
+    def to_domain(self) -> EACEvent:
+        return EACEvent(
+            event_id=self.event_id,
+            event_type=self.event_type,
+            os=OSDomainEnum(self.os.value),
+            device_id=self.device_id,
+            ip_address=self.ip_address,
+            user_agent=self.user_agent,
+            revenue=self.revenue
+        )
+
 class EACEventResponseDTO(BaseModel):
     event_id: str
     status: str
     attribution_method: str
+
+    @classmethod
+    def from_domain(cls, result: EACEventResult) -> "EACEventResponseDTO":
+        return cls(
+            event_id=result.event_id,
+            status=result.status,
+            attribution_method=result.attribution_method
+        )

@@ -18,12 +18,17 @@ def received_conversion_postback(
     conversion_postback_dto: ConversionPostbackDTO,
     conversion_service: ConversionService = Depends(get_conversion_service),
 ):
-    return conversion_service.process(conversion_postback_dto)
+    conversion_domain = conversion_postback_dto.to_domain()
+    result = conversion_service.process(conversion_domain)
+    return ConversionResponseDTO.from_domain(result)
 
 @eac_router.post("/v1/eac/events", status_code=status.HTTP_200_OK, response_model=EACEventResponseDTO)
 async def received_event_postback(
     payload: EACEventPayload,
     attribution_service: AttributionService = Depends(get_attribution_service),
 ):
-    return await attribution_service.process_eac_event(payload)
+    event_domain = payload.to_domain()
+    result = await attribution_service.process_eac_event(event_domain)
+    return EACEventResponseDTO.from_domain(result)
+
 
